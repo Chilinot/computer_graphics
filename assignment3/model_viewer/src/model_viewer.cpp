@@ -177,18 +177,25 @@ void init(Context &ctx)
 void drawMesh(Context &ctx, GLuint program, const MeshVAO &meshVAO)
 {
     // Define uniforms
-    glm::mat4 model      = trackballGetRotationMatrix(ctx.trackball);
-    model                = glm::scale(model, glm::vec3(0.7f));
+    glm::mat4 model          = trackballGetRotationMatrix(ctx.trackball);
+    model                    = glm::scale(model, glm::vec3(0.7f));
 
-    glm::mat4 view       = glm::lookAt(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 view           = glm::lookAt(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-    glm::mat4 projection = glm::ortho(-ctx.aspect, ctx.aspect, -1.0f, 1.0f, -1.0f, 1.0f);
+    //glm::mat4 projection   = glm::ortho(-ctx.aspect, ctx.aspect, -1.0f, 1.0f, -1.0f, 1.0f);
+    glm::mat4 projection     = glm::perspective(3.14159f/2, 1.0f, 0.1f, 100.0f);
 
-    glm::mat4 mv         = view * model;
-    glm::mat4 mvp        = projection * mv;
+    glm::mat4 mv             = view * model;
+    glm::mat4 mvp            = projection * mv;
 
-    //glm::vec3 light_pos  = glm::vec3(0.0f, 1.0f, 0.0f);
-    glm::vec3 light_pos = glm::vec3(1.0f, 5.0f, 0.0f);
+    glm::vec3 light_pos      = glm::vec3(0.0f, 3.0f, 0.0f);
+    glm::vec3 light_color    = glm::vec3(1.0f, 0.0f, 0.0f);
+
+    glm::vec3 ambient_color  = glm::vec3(0.1f, 0.0f, 0.0f);
+    glm::vec3 diffuse_color  = glm::vec3(0.2f, 0.0f, 0.0f);
+    glm::vec3 specular_color = glm::vec3(0.0f, 0.0f, 0.3f);
+    float specular_power     = 0.1f;
+
     // ...
 
     // Activate program
@@ -202,6 +209,11 @@ void drawMesh(Context &ctx, GLuint program, const MeshVAO &meshVAO)
     glUniformMatrix4fv(glGetUniformLocation(ctx.program, "u_mvp"), 1, GL_FALSE, &mvp[0][0]);
     glUniform1f(glGetUniformLocation(ctx.program, "u_time"), ctx.elapsed_time);
     glUniform3fv(glGetUniformLocation(ctx.program, "u_light_position"),  1, &light_pos[0]);
+    glUniform3fv(glGetUniformLocation(ctx.program, "u_light_color"),  1, &light_color[0]);
+    glUniform3fv(glGetUniformLocation(ctx.program, "u_ambient_color"),  1, &ambient_color[0]);
+    glUniform3fv(glGetUniformLocation(ctx.program, "u_diffuse_color"),  1, &diffuse_color[0]);
+    glUniform3fv(glGetUniformLocation(ctx.program, "u_specular_color"),  1, &specular_color[0]);
+    glUniform1f(glGetUniformLocation(ctx.program, "u_specular_power"), specular_power);
     // ...
 
     // Draw!
