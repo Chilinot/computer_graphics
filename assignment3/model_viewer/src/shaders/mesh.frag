@@ -4,6 +4,8 @@
 uniform vec3 u_ambient_color, u_diffuse_color, u_specular_color, u_light_color;
 uniform float u_specular_power;
 
+uniform bool u_ambient_toggle, u_diffuse_toggle, u_specular_toggle, u_gamma_toggle, u_invert_toggle, u_normal_toggle;
+
 in vec3 v_normal, n_normal, l_normal;
 
 out vec4 frag_color;
@@ -18,16 +20,35 @@ void main()
     vec3 halfway = normalize(l_normal + v_normal);
 
     // Ambient
-    I += u_ambient_color;
+    if(u_ambient_toggle) {
+        I += u_ambient_color;
+    }
 
     // Diffuse
-    I += u_diffuse_color * u_light_color * max(dot(n_normal, l_normal),0);
+    if(u_diffuse_toggle) {
+        I += u_diffuse_color * u_light_color * max(dot(n_normal, l_normal),0);
+    }
 
     // Specular
-    I += u_specular_color * u_light_color * ((8.0 + u_specular_color) / 8.0) * pow(dot(n_normal, halfway), u_specular_power);
+    if(u_specular_toggle) {
+        I += u_specular_color * u_light_color * ((8.0 + u_specular_color) / 8.0) * pow(dot(n_normal, halfway), u_specular_power);
+    }
+
+    // Normal colors
+    if(u_normal_toggle) {
+        I = n_normal;
+    }
+
+    // Invert colors
+    if(u_invert_toggle) {
+        I = vec3(1.0f) - I;
+    }
 
     // gamma correction
-    I = pow(I, vec3(1 / 2.2));
+    if(u_gamma_toggle) {
+        I = pow(I, vec3(1 / 2.2));
+    }
+
 
     frag_color = vec4(I, 1.0f);
 }

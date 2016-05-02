@@ -58,6 +58,12 @@ struct Context {
     GLuint defaultVAO;
     GLuint cubemap;
     float elapsed_time;
+    bool ambient_toggle;
+    bool diffuse_toggle;
+    bool specular_toggle;
+    bool gamma_toggle;
+    bool invert_toggle;
+    bool normal_toggle;
 };
 
 // Returns the value of an environment variable
@@ -214,7 +220,14 @@ void drawMesh(Context &ctx, GLuint program, const MeshVAO &meshVAO)
     glUniform3fv(glGetUniformLocation(ctx.program, "u_diffuse_color"),  1, &diffuse_color[0]);
     glUniform3fv(glGetUniformLocation(ctx.program, "u_specular_color"),  1, &specular_color[0]);
     glUniform1f(glGetUniformLocation(ctx.program, "u_specular_power"), specular_power);
-    // ...
+
+    // Toggles
+    glUniform1i(glGetUniformLocation(ctx.program, "u_ambient_toggle"), ctx.ambient_toggle);
+    glUniform1i(glGetUniformLocation(ctx.program, "u_diffuse_toggle"), ctx.diffuse_toggle);
+    glUniform1i(glGetUniformLocation(ctx.program, "u_specular_toggle"), ctx.specular_toggle);
+    glUniform1i(glGetUniformLocation(ctx.program, "u_gamma_toggle"), ctx.gamma_toggle);
+    glUniform1i(glGetUniformLocation(ctx.program, "u_invert_toggle"), ctx.invert_toggle);
+    glUniform1i(glGetUniformLocation(ctx.program, "u_normal_toggle"), ctx.normal_toggle);
 
     // Draw!
     glBindVertexArray(meshVAO.vao);
@@ -275,6 +288,24 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
     if (key == GLFW_KEY_R && action == GLFW_PRESS) {
         reloadShaders(ctx);
     }
+    else if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
+        ctx->ambient_toggle = !ctx->ambient_toggle;
+    }
+    else if (key == GLFW_KEY_W && action == GLFW_PRESS) {
+        ctx->diffuse_toggle = !ctx->diffuse_toggle;
+    }
+    else if (key == GLFW_KEY_E && action == GLFW_PRESS) {
+        ctx->specular_toggle = !ctx->specular_toggle;
+    }
+    else if (key == GLFW_KEY_R && action == GLFW_PRESS) {
+        ctx->gamma_toggle = !ctx->gamma_toggle;
+    }
+    else if (key == GLFW_KEY_T && action == GLFW_PRESS) {
+        ctx->invert_toggle = !ctx->invert_toggle;
+    }
+    else if (key == GLFW_KEY_Y && action == GLFW_PRESS) {
+        ctx->normal_toggle = !ctx->normal_toggle;
+    }
 }
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
@@ -323,6 +354,15 @@ void resizeCallback(GLFWwindow* window, int width, int height)
 int main(void)
 {
     Context ctx;
+
+    // My settings
+    ctx.ambient_toggle  = true;
+    ctx.diffuse_toggle  = true;
+    ctx.specular_toggle = true;
+    ctx.gamma_toggle    = true;
+    ctx.invert_toggle   = false;
+    ctx.normal_toggle   = false;
+
 
     // Create a GLFW window
     glfwSetErrorCallback(errorCallback);
