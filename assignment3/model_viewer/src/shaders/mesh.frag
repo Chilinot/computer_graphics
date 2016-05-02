@@ -26,6 +26,8 @@ void main()
     // Specular
     I += u_specular_color * u_light_color * ((8.0 + u_specular_color) / 8.0) * pow(dot(n_normal, halfway), u_specular_power);
 
+    // gamma correction
+    I = pow(I, vec3(1 / 2.2));
 
     frag_color = vec4(I, 1.0f);
 }

@@ -191,10 +191,10 @@ void drawMesh(Context &ctx, GLuint program, const MeshVAO &meshVAO)
     glm::vec3 light_pos      = glm::vec3(0.0f, 3.0f, 0.0f);
     glm::vec3 light_color    = glm::vec3(1.0f, 0.0f, 0.0f);
 
-    glm::vec3 ambient_color  = glm::vec3(0.1f, 0.0f, 0.0f);
-    glm::vec3 diffuse_color  = glm::vec3(0.2f, 0.0f, 0.0f);
-    glm::vec3 specular_color = glm::vec3(0.0f, 0.0f, 0.3f);
-    float specular_power     = 0.1f;
+    glm::vec3 ambient_color  = glm::vec3(0.01f, 0.0f, 0.0f);
+    glm::vec3 diffuse_color  = glm::vec3(1.0f, 0.0f, 0.0f);
+    glm::vec3 specular_color = glm::vec3(0.04f);
+    float specular_power     = 0.01f;
 
     // ...
 
