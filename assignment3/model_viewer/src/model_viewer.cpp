@@ -307,7 +307,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         switch(key):
 
             // Reload shaders
-            case GLFW_KEY_R: reloadShaders(ctx); break;
+            case GLFW_KEY_S: reloadShaders(ctx); break;
 
             // Toggles
             case GLFW_KEY_Q: ctx->ambient_toggle = !ctx->ambient_toggle; break;
