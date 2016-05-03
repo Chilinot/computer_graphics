@@ -56,14 +56,26 @@ struct Context {
     Mesh mesh;
     MeshVAO meshVAO;
     GLuint defaultVAO;
-    GLuint cubemap;
     float elapsed_time;
+
+    // My settings
     bool ambient_toggle;
     bool diffuse_toggle;
     bool specular_toggle;
     bool gamma_toggle;
     bool invert_toggle;
     bool normal_toggle;
+    float zoom_factor;
+
+    // Cubemaps
+    GLuint cubemap_0;
+    GLuint cubemap_1;
+    GLuint cubemap_2;
+    GLuint cubemap_3;
+    GLuint cubemap_4;
+    GLuint cubemap_5;
+    GLuint cubemap_6;
+    GLuint cubemap_7;
 };
 
 // Returns the value of an environment variable
@@ -174,7 +186,14 @@ void init(Context &ctx)
     createMeshVAO(ctx, ctx.mesh, &ctx.meshVAO);
 
     // Load cubemap texture(s)
-    // ...
+    ctx.cubemap_0 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/0.125");
+    ctx.cubemap_1 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/0.5");
+    ctx.cubemap_2 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/2");
+    ctx.cubemap_3 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/8");
+    ctx.cubemap_4 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/32");
+    ctx.cubemap_5 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/128");
+    ctx.cubemap_6 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/512");
+    ctx.cubemap_7 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/2048");
 
     initializeTrackball(ctx);
 }
@@ -189,26 +208,23 @@ void drawMesh(Context &ctx, GLuint program, const MeshVAO &meshVAO)
     glm::mat4 view           = glm::lookAt(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     //glm::mat4 projection   = glm::ortho(-ctx.aspect, ctx.aspect, -1.0f, 1.0f, -1.0f, 1.0f);
-    glm::mat4 projection     = glm::perspective(3.14159f/2, 1.0f, 0.1f, 100.0f);
+    glm::mat4 projection     = glm::perspective((3.1415926535f/2)*ctx.zoom_factor, (float)ctx.width/(float)ctx.height, 0.1f, 10.0f);
 
     glm::mat4 mv             = view * model;
     glm::mat4 mvp            = projection * mv;
 
     glm::vec3 light_pos      = glm::vec3(0.0f, 3.0f, 0.0f);
-    glm::vec3 light_color    = glm::vec3(1.0f, 0.0f, 0.0f);
+    glm::vec3 light_color    = glm::vec3(1.0f);
 
     glm::vec3 ambient_color  = glm::vec3(0.01f, 0.0f, 0.0f);
     glm::vec3 diffuse_color  = glm::vec3(1.0f, 0.0f, 0.0f);
     glm::vec3 specular_color = glm::vec3(0.04f);
-    float specular_power     = 0.01f;
-
-    // ...
+    float specular_power     = 100.0f;
 
     // Activate program
     glUseProgram(program);
 
     // Bind textures
-    // ...
 
     // Pass uniforms
     glUniformMatrix4fv(glGetUniformLocation(ctx.program, "u_mv"), 1, GL_FALSE, &mv[0][0]);
@@ -306,6 +322,12 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
     else if (key == GLFW_KEY_Y && action == GLFW_PRESS) {
         ctx->normal_toggle = !ctx->normal_toggle;
     }
+    else if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
+        ctx->zoom_factor += 0.1;
+    }
+    else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
+        ctx->zoom_factor -= 0.1;
+    }
 }
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
@@ -362,6 +384,7 @@ int main(void)
     ctx.gamma_toggle    = true;
     ctx.invert_toggle   = false;
     ctx.normal_toggle   = false;
+    ctx.zoom_factor     = 1.0f;
 
 
     // Create a GLFW window

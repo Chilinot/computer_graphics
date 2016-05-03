@@ -1,13 +1,17 @@
 // Fragment shader
 #version 150
 
+// Uniforms
 uniform vec3 u_ambient_color, u_diffuse_color, u_specular_color, u_light_color;
 uniform float u_specular_power;
 
+// Toggle bools
 uniform bool u_ambient_toggle, u_diffuse_toggle, u_specular_toggle, u_gamma_toggle, u_invert_toggle, u_normal_toggle;
 
+// From vertex shader
 in vec3 v_normal, n_normal, l_normal;
 
+// Output
 out vec4 frag_color;
 
 void main()
@@ -31,7 +35,7 @@ void main()
 
     // Specular
     if(u_specular_toggle) {
-        I += u_specular_color * u_light_color * ((8.0 + u_specular_color) / 8.0) * pow(dot(n_normal, halfway), u_specular_power);
+        I += ((8.0 + u_specular_power) / 8.0) * u_specular_color * u_light_color * pow(dot(n_normal, halfway), u_specular_power);
     }
 
     // Normal colors
