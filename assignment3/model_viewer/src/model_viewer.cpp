@@ -304,7 +304,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
     Context *ctx = static_cast<Context *>(glfwGetWindowUserPointer(window));
     if(action == GLFW_PRESS) {
-        switch(key):
+        switch(key) {
 
             // Reload shaders
             case GLFW_KEY_S: reloadShaders(ctx); break;
@@ -330,6 +330,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             case GLFW_KEY_6: ctx->cubemap = ctx->cubemap_5; break;
             case GLFW_KEY_7: ctx->cubemap = ctx->cubemap_6; break;
             case GLFW_KEY_8: ctx->cubemap = ctx->cubemap_7; break;
+        }
     }
 }
 
