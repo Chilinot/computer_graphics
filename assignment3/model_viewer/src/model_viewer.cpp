@@ -197,6 +197,10 @@ void init(Context &ctx)
     ctx.cubemap_6 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/512");
     ctx.cubemap_7 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/2048");
 
+    // Default cubemap
+    glActiveTexture(GL_TEXTURE0);
+    ctx.cubemap = ctx.cubemap_0;
+
     initializeTrackball(ctx);
 }
 
@@ -227,6 +231,8 @@ void drawMesh(Context &ctx, GLuint program, const MeshVAO &meshVAO)
     glUseProgram(program);
 
     // Bind textures
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, ctx.cubemap);
 
     // Pass uniforms
     glUniformMatrix4fv(glGetUniformLocation(ctx.program, "u_mv"), 1, GL_FALSE, &mv[0][0]);
@@ -238,6 +244,9 @@ void drawMesh(Context &ctx, GLuint program, const MeshVAO &meshVAO)
     glUniform3fv(glGetUniformLocation(ctx.program, "u_diffuse_color"),  1, &diffuse_color[0]);
     glUniform3fv(glGetUniformLocation(ctx.program, "u_specular_color"),  1, &specular_color[0]);
     glUniform1f(glGetUniformLocation(ctx.program, "u_specular_power"), specular_power);
+
+    // Cubemap
+    glUniform1i(glGetUniformLocation(ctx.program, "u_cubemap"), GL_TEXTURE0);
 
     // Toggles
     glUniform1i(glGetUniformLocation(ctx.program, "u_ambient_toggle"), ctx.ambient_toggle);

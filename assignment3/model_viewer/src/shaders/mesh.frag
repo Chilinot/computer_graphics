@@ -4,6 +4,7 @@
 // Uniforms
 uniform vec3 u_ambient_color, u_diffuse_color, u_specular_color, u_light_color;
 uniform float u_specular_power;
+uniform samplerCube u_cubemap;
 
 // Toggle bools
 uniform bool u_ambient_toggle, u_diffuse_toggle, u_specular_toggle, u_gamma_toggle, u_invert_toggle, u_normal_toggle;
@@ -19,7 +20,9 @@ void main()
     //vec3 N = normalize(v_normal);
     //frag_color = vec4(0.5 * N + 0.5, 1.0);
 
-    vec3 I = vec3(0.0f);
+    vec3 R = reflect(-v_normal, n_normal);
+
+    vec3 I = texture(u_cubemap, R).rgb;
 
     vec3 halfway = normalize(l_normal + v_normal);
 
@@ -35,7 +38,7 @@ void main()
 
     // Specular
     if(u_specular_toggle) {
-        I += ((8.0 + u_specular_power) / 8.0) * u_specular_color * u_light_color * pow(dot(n_normal, halfway), u_specular_power);
+        I += ((8.0 + u_specular_power) / 8.0) * u_specular_color * u_light_color * pow(max(dot(n_normal, halfway),0), u_specular_power);
     }
 
     // Normal colors
@@ -45,7 +48,7 @@ void main()
 
     // Invert colors
     if(u_invert_toggle) {
-        I = vec3(1.0f) - I;
+        I = 1.0 - I;
     }
 
     // gamma correction
@@ -53,6 +56,6 @@ void main()
         I = pow(I, vec3(1 / 2.2));
     }
 
-
     frag_color = vec4(I, 1.0f);
+    //frag_color = texture(u_cubemap, R);
 }
