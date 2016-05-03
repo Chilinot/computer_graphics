@@ -76,6 +76,8 @@ struct Context {
     GLuint cubemap_5;
     GLuint cubemap_6;
     GLuint cubemap_7;
+
+    GLuint cubemap;
 };
 
 // Returns the value of an environment variable
@@ -301,32 +303,33 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 #endif // WITH_TWEAKBAR
 
     Context *ctx = static_cast<Context *>(glfwGetWindowUserPointer(window));
-    if (key == GLFW_KEY_R && action == GLFW_PRESS) {
-        reloadShaders(ctx);
-    }
-    else if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
-        ctx->ambient_toggle = !ctx->ambient_toggle;
-    }
-    else if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-        ctx->diffuse_toggle = !ctx->diffuse_toggle;
-    }
-    else if (key == GLFW_KEY_E && action == GLFW_PRESS) {
-        ctx->specular_toggle = !ctx->specular_toggle;
-    }
-    else if (key == GLFW_KEY_R && action == GLFW_PRESS) {
-        ctx->gamma_toggle = !ctx->gamma_toggle;
-    }
-    else if (key == GLFW_KEY_T && action == GLFW_PRESS) {
-        ctx->invert_toggle = !ctx->invert_toggle;
-    }
-    else if (key == GLFW_KEY_Y && action == GLFW_PRESS) {
-        ctx->normal_toggle = !ctx->normal_toggle;
-    }
-    else if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
-        ctx->zoom_factor += 0.1;
-    }
-    else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
-        ctx->zoom_factor -= 0.1;
+    if(action == GLFW_PRESS) {
+        switch(key):
+
+            // Reload shaders
+            case GLFW_KEY_R: reloadShaders(ctx); break;
+
+            // Toggles
+            case GLFW_KEY_Q: ctx->ambient_toggle = !ctx->ambient_toggle; break;
+            case GLFW_KEY_W: ctx->diffuse_toggle = !ctx->diffuse_toggle; break;
+            case GLFW_KEY_E: ctx->specular_toggle = !ctx->specular_toggle; break;
+            case GLFW_KEY_R: ctx->gamma_toggle = !ctx->gamma_toggle; break;
+            case GLFW_KEY_T: ctx->invert_toggle = !ctx->invert_toggle; break;
+            case GLFW_KEY_Y: ctx->normal_toggle = !ctx->normal_toggle; break;
+
+            // Zoom
+            case GLFW_KEY_UP: ctx->zoom_factor += 0.1; break;
+            case GLFW_KEY_DOWN: ctx->zoom_factor -= 0.1; break;
+
+            // Cubemaps
+            case GLFW_KEY_1: ctx->cubemap = ctx->cubemap_0; break;
+            case GLFW_KEY_2: ctx->cubemap = ctx->cubemap_1; break;
+            case GLFW_KEY_3: ctx->cubemap = ctx->cubemap_2; break;
+            case GLFW_KEY_4: ctx->cubemap = ctx->cubemap_3; break;
+            case GLFW_KEY_5: ctx->cubemap = ctx->cubemap_4; break;
+            case GLFW_KEY_6: ctx->cubemap = ctx->cubemap_5; break;
+            case GLFW_KEY_7: ctx->cubemap = ctx->cubemap_6; break;
+            case GLFW_KEY_8: ctx->cubemap = ctx->cubemap_7; break;
     }
 }
 
