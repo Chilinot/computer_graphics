@@ -208,7 +208,7 @@ void drawMesh(Context &ctx, GLuint program, const MeshVAO &meshVAO)
     glm::mat4 view           = glm::lookAt(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     //glm::mat4 projection   = glm::ortho(-ctx.aspect, ctx.aspect, -1.0f, 1.0f, -1.0f, 1.0f);
-    glm::mat4 projection     = glm::perspective((3.1415926535f/2)*ctx.zoom_factor, (float)ctx.width/(float)ctx.height, 0.1f, 10.0f);
+    glm::mat4 projection     = glm::perspective((3.14159f/2)*ctx.zoom_factor, (float)ctx.width/(float)ctx.height, 0.1f, 10.0f);
 
     glm::mat4 mv             = view * model;
     glm::mat4 mvp            = projection * mv;
