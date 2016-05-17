@@ -93,6 +93,10 @@ struct Context {
 
     GLuint* cubemap;
     int cubemap_choice;
+
+    // Skybox
+    GLuint skyboxProgram;
+    GLuint skyboxCubemap;
 };
 
 // Returns the value of an environment variable
@@ -199,6 +203,11 @@ void init(Context &ctx)
     ctx.program = loadShaderProgram(shaderDir() + "mesh.vert",
                                     shaderDir() + "mesh.frag");
 
+    ctx.skyboxProgram = loadShaderProgram(shaderDir() + "skybox.vert",
+                                          shaderDir() + "skybox.frag");
+
+    ctx.skyboxCubemap = loadCubemap(cubemapDir() + "/Forrest/prefiltered/2048");
+
     loadMesh((modelDir() + "armadillo.obj"), &ctx.mesh);
     createMeshVAO(ctx, ctx.mesh, &ctx.meshVAO);
 
@@ -211,10 +220,6 @@ void init(Context &ctx)
     ctx.cubemap_5 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/128");
     ctx.cubemap_6 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/512");
     ctx.cubemap_7 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/2048");
-
-    // Default cubemap
-    //glActiveTexture(GL_TEXTURE0);
-    //ctx.cubemap = &ctx.cubemap_0;
 
     initializeTrackball(ctx);
 }
