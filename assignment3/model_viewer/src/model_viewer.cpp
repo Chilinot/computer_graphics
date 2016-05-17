@@ -71,6 +71,8 @@ struct Context {
     float background_color[3];
     float background_intensity;
 
+    glm::vec3 eye_position;
+
     // Uniforms
     glm::vec3 light_position;
     glm::vec3 light_color;
@@ -224,7 +226,7 @@ void drawMesh(Context &ctx, GLuint program, const MeshVAO &meshVAO)
     glm::mat4 model = trackballGetRotationMatrix(ctx.trackball);
     model           = glm::scale(model, glm::vec3(0.5f));
 
-    glm::mat4 view  = glm::lookAt(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 view  = glm::lookAt(ctx.eye_position,  glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     glm::mat4 projection;
     if(ctx.ortho_projection) {
@@ -404,6 +406,8 @@ int main(void)
 
     ctx.cubemap_choice = 1;
 
+    ctx.eye_position = glm::vec3(0.0f, 0.0f, -1.0f);
+
     // Uniforms
     ctx.light_position = glm::vec3(0.0f, 3.0f, 0.0f);
     ctx.light_color    = glm::vec3(1.0f);
@@ -474,6 +478,7 @@ int main(void)
     TwAddVarRW(tweakbar, "Specular Power", TW_TYPE_FLOAT, &ctx.specular_power, "");
     TwAddVarRW(tweakbar, "Zoom",           TW_TYPE_FLOAT, &ctx.zoom_factor,    "min=0.1 max=1.9 step=0.01");
     TwAddVarRW(tweakbar, "Cubemap",        TW_TYPE_INT32, &ctx.cubemap_choice, "min=0 max=8");
+    TwAddVarRW(tweakbar, "Eye Direction",  TW_TYPE_DIR3F, &ctx.eye_position, "");
 #endif // WITH_TWEAKBAR
 
     // Initialize rendering
