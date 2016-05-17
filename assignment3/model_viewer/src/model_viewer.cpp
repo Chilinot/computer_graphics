@@ -334,31 +334,8 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
     Context *ctx = static_cast<Context *>(glfwGetWindowUserPointer(window));
     if(action == GLFW_PRESS) {
         switch(key) {
-
             // Reload shaders
             case GLFW_KEY_S: reloadShaders(ctx); break;
-
-            // Toggles
-            //case GLFW_KEY_Q: ctx->ambient_toggle  = !ctx->ambient_toggle;  break;
-            //case GLFW_KEY_W: ctx->diffuse_toggle  = !ctx->diffuse_toggle;  break;
-            //case GLFW_KEY_E: ctx->specular_toggle = !ctx->specular_toggle; break;
-            //case GLFW_KEY_R: ctx->gamma_toggle    = !ctx->gamma_toggle;    break;
-            //case GLFW_KEY_T: ctx->invert_toggle   = !ctx->invert_toggle;   break;
-            //case GLFW_KEY_Y: ctx->normal_toggle   = !ctx->normal_toggle;   break;
-
-            // Zoom
-            //case GLFW_KEY_UP: ctx->zoom_factor   += 0.1; break;
-            //case GLFW_KEY_DOWN: ctx->zoom_factor -= 0.1; break;
-
-            // Cubemaps
-            //case GLFW_KEY_1: ctx->cubemap = ctx->cubemap_0; break;
-            //case GLFW_KEY_2: ctx->cubemap = ctx->cubemap_1; break;
-            //case GLFW_KEY_3: ctx->cubemap = ctx->cubemap_2; break;
-            //case GLFW_KEY_4: ctx->cubemap = ctx->cubemap_3; break;
-            //case GLFW_KEY_5: ctx->cubemap = ctx->cubemap_4; break;
-            //case GLFW_KEY_6: ctx->cubemap = ctx->cubemap_5; break;
-            //case GLFW_KEY_7: ctx->cubemap = ctx->cubemap_6; break;
-            //case GLFW_KEY_8: ctx->cubemap = ctx->cubemap_7; break;
         }
     }
 }
