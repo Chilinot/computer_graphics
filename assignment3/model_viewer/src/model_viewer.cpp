@@ -68,6 +68,9 @@ struct Context {
     float zoom_factor;
     bool ortho_projection;
 
+    float background_color[3];
+    float background_intensity;
+
     // Cubemaps
     GLuint cubemap_0;
     GLuint cubemap_1;
@@ -270,7 +273,7 @@ void drawMesh(Context &ctx, GLuint program, const MeshVAO &meshVAO)
 
 void display(Context &ctx)
 {
-    glClearColor(0.2, 0.2, 0.2, 1.0);
+    glClearColor(ctx.background_color[0], ctx.background_color[1], ctx.background_color[2], ctx.background_intensity);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_DEPTH_TEST); // ensures that polygons overlap correctly
@@ -406,6 +409,11 @@ int main(void)
     ctx.zoom_factor      = 1.0f;
     ctx.ortho_projection = false;
 
+    ctx.background_color[0] = 1.0f;
+    ctx.background_color[1] = 1.0f;
+    ctx.background_color[2] = 1.0f;
+    ctx.background_intensity = 1.0f;
+
 
     // Create a GLFW window
     glfwSetErrorCallback(errorCallback);
@@ -449,6 +457,7 @@ int main(void)
     TwAddVarRW(tweakbar, "Normal",   TW_TYPE_BOOLCPP, &ctx.normal_toggle, "");
     TwAddVarRW(tweakbar, "Zoom",     TW_TYPE_FLOAT,   &ctx.zoom_factor, " min=0.1 max=1.9 step=0.01");
     TwAddVarRW(tweakbar, "Orthogonal Projection", TW_TYPE_BOOLCPP, &ctx.ortho_projection, "");
+    TwAddVarRW(tweakbar, "Background Color", TW_TYPE_COLOR3F, &ctx.background_color, "");
 #endif // WITH_TWEAKBAR
 
     // Initialize rendering
