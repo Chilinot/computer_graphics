@@ -41,14 +41,14 @@ aux_source_directory("${CMAKE_CURRENT_SOURCE_DIR}/../external/lodepng" model_vie
 include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../external/lodepng")
 
 # AntTweakBar (uncomment to enable)
-#aux_source_directory("${CMAKE_CURRENT_SOURCE_DIR}/../external/anttweakbar/src" model_viewer_SRCS)
-#include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../external/anttweakbar/include")
-#include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../external/anttweakbar/src")
-#add_definitions(-DTW_STATIC -DTW_NO_LIB_PRAGMA)
-#if(UNIX)
-#  add_definitions(-D_UNIX)
-#endif(UNIX)
-#add_definitions(-DWITH_TWEAKBAR)
+aux_source_directory("${CMAKE_CURRENT_SOURCE_DIR}/../external/anttweakbar/src" model_viewer_SRCS)
+include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../external/anttweakbar/include")
+include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../external/anttweakbar/src")
+add_definitions(-DTW_STATIC -DTW_NO_LIB_PRAGMA)
+if(UNIX)
+  add_definitions(-D_UNIX)
+endif(UNIX)
+add_definitions(-DWITH_TWEAKBAR)
 
 # Create build files for executable
 add_executable(model_viewer ${model_viewer_SRCS})

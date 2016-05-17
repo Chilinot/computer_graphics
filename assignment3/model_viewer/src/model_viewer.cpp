@@ -319,15 +319,15 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             case GLFW_KEY_S: reloadShaders(ctx); break;
 
             // Toggles
-            case GLFW_KEY_Q: ctx->ambient_toggle = !ctx->ambient_toggle; break;
-            case GLFW_KEY_W: ctx->diffuse_toggle = !ctx->diffuse_toggle; break;
+            case GLFW_KEY_Q: ctx->ambient_toggle  = !ctx->ambient_toggle;  break;
+            case GLFW_KEY_W: ctx->diffuse_toggle  = !ctx->diffuse_toggle;  break;
             case GLFW_KEY_E: ctx->specular_toggle = !ctx->specular_toggle; break;
-            case GLFW_KEY_R: ctx->gamma_toggle = !ctx->gamma_toggle; break;
-            case GLFW_KEY_T: ctx->invert_toggle = !ctx->invert_toggle; break;
-            case GLFW_KEY_Y: ctx->normal_toggle = !ctx->normal_toggle; break;
+            case GLFW_KEY_R: ctx->gamma_toggle    = !ctx->gamma_toggle;    break;
+            case GLFW_KEY_T: ctx->invert_toggle   = !ctx->invert_toggle;   break;
+            case GLFW_KEY_Y: ctx->normal_toggle   = !ctx->normal_toggle;   break;
 
             // Zoom
-            case GLFW_KEY_UP: ctx->zoom_factor += 0.1; break;
+            case GLFW_KEY_UP: ctx->zoom_factor   += 0.1; break;
             case GLFW_KEY_DOWN: ctx->zoom_factor -= 0.1; break;
 
             // Cubemaps
@@ -432,6 +432,15 @@ int main(void)
     TwInit(TW_OPENGL_CORE, nullptr);
     TwWindowSize(ctx.width, ctx.height);
     TwBar *tweakbar = TwNewBar("Settings");
+
+    // My settings
+    TwAddVarRW(tweakbar, "Ambient",  TW_TYPE_BOOLCPP, &ctx.ambient_toggle, "");
+    TwAddVarRW(tweakbar, "Diffuse",  TW_TYPE_BOOLCPP, &ctx.diffuse_toggle, "");
+    TwAddVarRW(tweakbar, "Specular", TW_TYPE_BOOLCPP, &ctx.specular_toggle, "");
+    TwAddVarRW(tweakbar, "Gamme",    TW_TYPE_BOOLCPP, &ctx.gamma_toggle, "");
+    TwAddVarRW(tweakbar, "Invert",   TW_TYPE_BOOLCPP, &ctx.invert_toggle, "");
+    TwAddVarRW(tweakbar, "Normal",   TW_TYPE_BOOLCPP, &ctx.normal_toggle, "");
+    TwAddVarRW(tweakbar, "Zoom",     TW_TYPE_FLOAT,   &ctx.zoom_factor, " min=0.1 max=1.9 step=0.01");
 #endif // WITH_TWEAKBAR
 
     // Initialize rendering
