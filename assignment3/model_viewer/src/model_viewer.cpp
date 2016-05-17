@@ -241,7 +241,6 @@ void drawMesh(Context &ctx, GLuint program, const MeshVAO &meshVAO)
     glUseProgram(program);
 
     // Bind textures
-
     switch(ctx.cubemap_choice) {
       case 1: ctx.cubemap = &ctx.cubemap_0; break;
       case 2: ctx.cubemap = &ctx.cubemap_1; break;
@@ -252,7 +251,6 @@ void drawMesh(Context &ctx, GLuint program, const MeshVAO &meshVAO)
       case 7: ctx.cubemap = &ctx.cubemap_6; break;
       case 8: ctx.cubemap = &ctx.cubemap_7; break;
     }
-
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, *(ctx.cubemap));
 
@@ -484,7 +482,7 @@ int main(void)
     TwAddVarRW(tweakbar, "Specular Color", TW_TYPE_COLOR3F, &ctx.specular_color, "");
     TwAddVarRW(tweakbar, "Background Color", TW_TYPE_COLOR3F, &ctx.background_color, "");
 
-    // -- Toggle
+    // Toggle
     TwAddSeparator(tweakbar, NULL, "");
     TwAddVarRW(tweakbar, "Ambient",  TW_TYPE_BOOLCPP, &ctx.ambient_toggle, "");
     TwAddVarRW(tweakbar, "Diffuse",  TW_TYPE_BOOLCPP, &ctx.diffuse_toggle, "");
