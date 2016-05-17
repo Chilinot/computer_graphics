@@ -89,7 +89,8 @@ struct Context {
     GLuint cubemap_6;
     GLuint cubemap_7;
 
-    GLuint cubemap;
+    GLuint* cubemap;
+    int cubemap_choice;
 };
 
 // Returns the value of an environment variable
@@ -210,8 +211,8 @@ void init(Context &ctx)
     ctx.cubemap_7 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/2048");
 
     // Default cubemap
-    glActiveTexture(GL_TEXTURE0);
-    ctx.cubemap = ctx.cubemap_0;
+    //glActiveTexture(GL_TEXTURE0);
+    //ctx.cubemap = &ctx.cubemap_0;
 
     initializeTrackball(ctx);
 }
@@ -240,8 +241,20 @@ void drawMesh(Context &ctx, GLuint program, const MeshVAO &meshVAO)
     glUseProgram(program);
 
     // Bind textures
+
+    switch(ctx.cubemap_choice) {
+      case 1: ctx.cubemap = &ctx.cubemap_0; break;
+      case 2: ctx.cubemap = &ctx.cubemap_1; break;
+      case 3: ctx.cubemap = &ctx.cubemap_2; break;
+      case 4: ctx.cubemap = &ctx.cubemap_3; break;
+      case 5: ctx.cubemap = &ctx.cubemap_4; break;
+      case 6: ctx.cubemap = &ctx.cubemap_5; break;
+      case 7: ctx.cubemap = &ctx.cubemap_6; break;
+      case 8: ctx.cubemap = &ctx.cubemap_7; break;
+    }
+
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, ctx.cubemap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, *(ctx.cubemap));
 
     // Pass uniforms
     glUniformMatrix4fv(glGetUniformLocation(ctx.program, "u_mv"), 1, GL_FALSE, &mv[0][0]);
@@ -328,26 +341,26 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             case GLFW_KEY_S: reloadShaders(ctx); break;
 
             // Toggles
-            case GLFW_KEY_Q: ctx->ambient_toggle  = !ctx->ambient_toggle;  break;
-            case GLFW_KEY_W: ctx->diffuse_toggle  = !ctx->diffuse_toggle;  break;
-            case GLFW_KEY_E: ctx->specular_toggle = !ctx->specular_toggle; break;
-            case GLFW_KEY_R: ctx->gamma_toggle    = !ctx->gamma_toggle;    break;
-            case GLFW_KEY_T: ctx->invert_toggle   = !ctx->invert_toggle;   break;
-            case GLFW_KEY_Y: ctx->normal_toggle   = !ctx->normal_toggle;   break;
+            //case GLFW_KEY_Q: ctx->ambient_toggle  = !ctx->ambient_toggle;  break;
+            //case GLFW_KEY_W: ctx->diffuse_toggle  = !ctx->diffuse_toggle;  break;
+            //case GLFW_KEY_E: ctx->specular_toggle = !ctx->specular_toggle; break;
+            //case GLFW_KEY_R: ctx->gamma_toggle    = !ctx->gamma_toggle;    break;
+            //case GLFW_KEY_T: ctx->invert_toggle   = !ctx->invert_toggle;   break;
+            //case GLFW_KEY_Y: ctx->normal_toggle   = !ctx->normal_toggle;   break;
 
             // Zoom
-            case GLFW_KEY_UP: ctx->zoom_factor   += 0.1; break;
-            case GLFW_KEY_DOWN: ctx->zoom_factor -= 0.1; break;
+            //case GLFW_KEY_UP: ctx->zoom_factor   += 0.1; break;
+            //case GLFW_KEY_DOWN: ctx->zoom_factor -= 0.1; break;
 
             // Cubemaps
-            case GLFW_KEY_1: ctx->cubemap = ctx->cubemap_0; break;
-            case GLFW_KEY_2: ctx->cubemap = ctx->cubemap_1; break;
-            case GLFW_KEY_3: ctx->cubemap = ctx->cubemap_2; break;
-            case GLFW_KEY_4: ctx->cubemap = ctx->cubemap_3; break;
-            case GLFW_KEY_5: ctx->cubemap = ctx->cubemap_4; break;
-            case GLFW_KEY_6: ctx->cubemap = ctx->cubemap_5; break;
-            case GLFW_KEY_7: ctx->cubemap = ctx->cubemap_6; break;
-            case GLFW_KEY_8: ctx->cubemap = ctx->cubemap_7; break;
+            //case GLFW_KEY_1: ctx->cubemap = ctx->cubemap_0; break;
+            //case GLFW_KEY_2: ctx->cubemap = ctx->cubemap_1; break;
+            //case GLFW_KEY_3: ctx->cubemap = ctx->cubemap_2; break;
+            //case GLFW_KEY_4: ctx->cubemap = ctx->cubemap_3; break;
+            //case GLFW_KEY_5: ctx->cubemap = ctx->cubemap_4; break;
+            //case GLFW_KEY_6: ctx->cubemap = ctx->cubemap_5; break;
+            //case GLFW_KEY_7: ctx->cubemap = ctx->cubemap_6; break;
+            //case GLFW_KEY_8: ctx->cubemap = ctx->cubemap_7; break;
         }
     }
 }
@@ -414,6 +427,8 @@ int main(void)
     ctx.background_color[2] = 0.3f;
     ctx.background_intensity = 1.0f;
 
+    ctx.cubemap_choice = 1;
+
     // Uniforms
     ctx.light_position = glm::vec3(0.0f, 3.0f, 0.0f);
     ctx.light_color    = glm::vec3(1.0f);
@@ -458,18 +473,19 @@ int main(void)
     TwWindowSize(ctx.width, ctx.height);
     TwBar *tweakbar = TwNewBar("Settings");
 
-    // My settings
+    // Light
     TwAddVarRW(tweakbar, "Light Position", TW_TYPE_DIR3F, &ctx.light_position, "");
     TwAddVarRW(tweakbar, "Light Color", TW_TYPE_COLOR3F, &ctx.light_color, "");
 
-    TwAddSeparator(tweakbar, "Colors", "");
+    // Colors
+    TwAddSeparator(tweakbar, NULL, "");
     TwAddVarRW(tweakbar, "Ambient Color", TW_TYPE_COLOR3F, &ctx.ambient_color, "");
     TwAddVarRW(tweakbar, "Diffuse Color", TW_TYPE_COLOR3F, &ctx.diffuse_color, "");
     TwAddVarRW(tweakbar, "Specular Color", TW_TYPE_COLOR3F, &ctx.specular_color, "");
     TwAddVarRW(tweakbar, "Background Color", TW_TYPE_COLOR3F, &ctx.background_color, "");
 
     // -- Toggle
-    TwAddSeparator(tweakbar, "Toggle", "");
+    TwAddSeparator(tweakbar, NULL, "");
     TwAddVarRW(tweakbar, "Ambient",  TW_TYPE_BOOLCPP, &ctx.ambient_toggle, "");
     TwAddVarRW(tweakbar, "Diffuse",  TW_TYPE_BOOLCPP, &ctx.diffuse_toggle, "");
     TwAddVarRW(tweakbar, "Specular", TW_TYPE_BOOLCPP, &ctx.specular_toggle, "");
@@ -478,9 +494,11 @@ int main(void)
     TwAddVarRW(tweakbar, "Normal",   TW_TYPE_BOOLCPP, &ctx.normal_toggle, "");
     TwAddVarRW(tweakbar, "Orthogonal Projection", TW_TYPE_BOOLCPP, &ctx.ortho_projection, "");
 
-    TwAddSeparator(tweakbar, "Misc", "");
+    // Misc
+    TwAddSeparator(tweakbar, NULL, "");
     TwAddVarRW(tweakbar, "Specular Power", TW_TYPE_FLOAT, &ctx.specular_power, "");
-    TwAddVarRW(tweakbar, "Zoom",     TW_TYPE_FLOAT,   &ctx.zoom_factor, " min=0.1 max=1.9 step=0.01");
+    TwAddVarRW(tweakbar, "Zoom",           TW_TYPE_FLOAT, &ctx.zoom_factor,    "min=0.1 max=1.9 step=0.01");
+    TwAddVarRW(tweakbar, "Cubemap",        TW_TYPE_INT32, &ctx.cubemap_choice, "min=0 max=8");
 #endif // WITH_TWEAKBAR
 
     // Initialize rendering
