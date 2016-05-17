@@ -185,7 +185,7 @@ void init(Context &ctx)
     ctx.program = loadShaderProgram(shaderDir() + "mesh.vert",
                                     shaderDir() + "mesh.frag");
 
-    loadMesh((modelDir() + "gargo.obj"), &ctx.mesh);
+    loadMesh((modelDir() + "armadillo.obj"), &ctx.mesh);
     createMeshVAO(ctx, ctx.mesh, &ctx.meshVAO);
 
     // Load cubemap texture(s)
