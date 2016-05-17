@@ -71,6 +71,14 @@ struct Context {
     float background_color[3];
     float background_intensity;
 
+    // Uniforms
+    glm::vec3 light_position;
+    glm::vec3 light_color;
+    glm::vec3 ambient_color;
+    glm::vec3 diffuse_color;
+    glm::vec3 specular_color;
+    float specular_power;
+
     // Cubemaps
     GLuint cubemap_0;
     GLuint cubemap_1;
@@ -212,10 +220,10 @@ void init(Context &ctx)
 void drawMesh(Context &ctx, GLuint program, const MeshVAO &meshVAO)
 {
     // Define uniforms
-    glm::mat4 model          = trackballGetRotationMatrix(ctx.trackball);
-    model                    = glm::scale(model, glm::vec3(0.5f));
+    glm::mat4 model = trackballGetRotationMatrix(ctx.trackball);
+    model           = glm::scale(model, glm::vec3(0.5f));
 
-    glm::mat4 view           = glm::lookAt(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 view  = glm::lookAt(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     glm::mat4 projection;
     if(ctx.ortho_projection) {
@@ -225,16 +233,8 @@ void drawMesh(Context &ctx, GLuint program, const MeshVAO &meshVAO)
       projection = glm::perspective((3.14159f/2)*ctx.zoom_factor, (float)ctx.width/(float)ctx.height, 0.1f, 10.0f);
     }
 
-    glm::mat4 mv             = view * model;
-    glm::mat4 mvp            = projection * mv;
-
-    glm::vec3 light_pos      = glm::vec3(0.0f, 3.0f, 0.0f);
-    glm::vec3 light_color    = glm::vec3(1.0f);
-
-    glm::vec3 ambient_color  = glm::vec3(0.01f, 0.0f, 0.0f);
-    glm::vec3 diffuse_color  = glm::vec3(1.0f, 0.0f, 0.0f);
-    glm::vec3 specular_color = glm::vec3(0.04f);
-    float specular_power     = 100.0f;
+    glm::mat4 mv  = view * model;
+    glm::mat4 mvp = projection * mv;
 
     // Activate program
     glUseProgram(program);
@@ -247,23 +247,23 @@ void drawMesh(Context &ctx, GLuint program, const MeshVAO &meshVAO)
     glUniformMatrix4fv(glGetUniformLocation(ctx.program, "u_mv"), 1, GL_FALSE, &mv[0][0]);
     glUniformMatrix4fv(glGetUniformLocation(ctx.program, "u_mvp"), 1, GL_FALSE, &mvp[0][0]);
     glUniform1f(glGetUniformLocation(ctx.program, "u_time"), ctx.elapsed_time);
-    glUniform3fv(glGetUniformLocation(ctx.program, "u_light_position"),  1, &light_pos[0]);
-    glUniform3fv(glGetUniformLocation(ctx.program, "u_light_color"),  1, &light_color[0]);
-    glUniform3fv(glGetUniformLocation(ctx.program, "u_ambient_color"),  1, &ambient_color[0]);
-    glUniform3fv(glGetUniformLocation(ctx.program, "u_diffuse_color"),  1, &diffuse_color[0]);
-    glUniform3fv(glGetUniformLocation(ctx.program, "u_specular_color"),  1, &specular_color[0]);
-    glUniform1f(glGetUniformLocation(ctx.program, "u_specular_power"), specular_power);
+    glUniform3fv(glGetUniformLocation(ctx.program, "u_light_position"), 1, &ctx.light_position[0]);
+    glUniform3fv(glGetUniformLocation(ctx.program, "u_light_color"),    1, &ctx.light_color[0]);
+    glUniform3fv(glGetUniformLocation(ctx.program, "u_ambient_color"),  1, &ctx.ambient_color[0]);
+    glUniform3fv(glGetUniformLocation(ctx.program, "u_diffuse_color"),  1, &ctx.diffuse_color[0]);
+    glUniform3fv(glGetUniformLocation(ctx.program, "u_specular_color"), 1, &ctx.specular_color[0]);
+    glUniform1f(glGetUniformLocation(ctx.program, "u_specular_power"),      ctx.specular_power);
 
     // Cubemap
     glUniform1i(glGetUniformLocation(ctx.program, "u_cubemap"), GL_TEXTURE0);
 
     // Toggles
-    glUniform1i(glGetUniformLocation(ctx.program, "u_ambient_toggle"), ctx.ambient_toggle);
-    glUniform1i(glGetUniformLocation(ctx.program, "u_diffuse_toggle"), ctx.diffuse_toggle);
+    glUniform1i(glGetUniformLocation(ctx.program, "u_ambient_toggle"),  ctx.ambient_toggle);
+    glUniform1i(glGetUniformLocation(ctx.program, "u_diffuse_toggle"),  ctx.diffuse_toggle);
     glUniform1i(glGetUniformLocation(ctx.program, "u_specular_toggle"), ctx.specular_toggle);
-    glUniform1i(glGetUniformLocation(ctx.program, "u_gamma_toggle"), ctx.gamma_toggle);
-    glUniform1i(glGetUniformLocation(ctx.program, "u_invert_toggle"), ctx.invert_toggle);
-    glUniform1i(glGetUniformLocation(ctx.program, "u_normal_toggle"), ctx.normal_toggle);
+    glUniform1i(glGetUniformLocation(ctx.program, "u_gamma_toggle"),    ctx.gamma_toggle);
+    glUniform1i(glGetUniformLocation(ctx.program, "u_invert_toggle"),   ctx.invert_toggle);
+    glUniform1i(glGetUniformLocation(ctx.program, "u_normal_toggle"),   ctx.normal_toggle);
 
     // Draw!
     glBindVertexArray(meshVAO.vao);
@@ -409,10 +409,20 @@ int main(void)
     ctx.zoom_factor      = 1.0f;
     ctx.ortho_projection = false;
 
-    ctx.background_color[0] = 1.0f;
-    ctx.background_color[1] = 1.0f;
-    ctx.background_color[2] = 1.0f;
+    ctx.background_color[0] = 0.3f;
+    ctx.background_color[1] = 0.3f;
+    ctx.background_color[2] = 0.3f;
     ctx.background_intensity = 1.0f;
+
+    // Uniforms
+    ctx.light_position = glm::vec3(0.0f, 3.0f, 0.0f);
+    ctx.light_color    = glm::vec3(1.0f);
+
+    ctx.ambient_color  = glm::vec3(0.3f, 0.0f, 0.0f);
+    ctx.diffuse_color  = glm::vec3(0.3f, 0.0f, 0.0f);
+    ctx.specular_color = glm::vec3(0.04f);
+
+    ctx.specular_power = 100.0f;
 
 
     // Create a GLFW window
@@ -449,15 +459,28 @@ int main(void)
     TwBar *tweakbar = TwNewBar("Settings");
 
     // My settings
+    TwAddVarRW(tweakbar, "Light Position", TW_TYPE_DIR3F, &ctx.light_position, "");
+    TwAddVarRW(tweakbar, "Light Color", TW_TYPE_COLOR3F, &ctx.light_color, "");
+
+    TwAddSeparator(tweakbar, "Colors", "");
+    TwAddVarRW(tweakbar, "Ambient Color", TW_TYPE_COLOR3F, &ctx.ambient_color, "");
+    TwAddVarRW(tweakbar, "Diffuse Color", TW_TYPE_COLOR3F, &ctx.diffuse_color, "");
+    TwAddVarRW(tweakbar, "Specular Color", TW_TYPE_COLOR3F, &ctx.specular_color, "");
+    TwAddVarRW(tweakbar, "Background Color", TW_TYPE_COLOR3F, &ctx.background_color, "");
+
+    // -- Toggle
+    TwAddSeparator(tweakbar, "Toggle", "");
     TwAddVarRW(tweakbar, "Ambient",  TW_TYPE_BOOLCPP, &ctx.ambient_toggle, "");
     TwAddVarRW(tweakbar, "Diffuse",  TW_TYPE_BOOLCPP, &ctx.diffuse_toggle, "");
     TwAddVarRW(tweakbar, "Specular", TW_TYPE_BOOLCPP, &ctx.specular_toggle, "");
-    TwAddVarRW(tweakbar, "Gamme",    TW_TYPE_BOOLCPP, &ctx.gamma_toggle, "");
+    TwAddVarRW(tweakbar, "Gamma",    TW_TYPE_BOOLCPP, &ctx.gamma_toggle, "");
     TwAddVarRW(tweakbar, "Invert",   TW_TYPE_BOOLCPP, &ctx.invert_toggle, "");
     TwAddVarRW(tweakbar, "Normal",   TW_TYPE_BOOLCPP, &ctx.normal_toggle, "");
-    TwAddVarRW(tweakbar, "Zoom",     TW_TYPE_FLOAT,   &ctx.zoom_factor, " min=0.1 max=1.9 step=0.01");
     TwAddVarRW(tweakbar, "Orthogonal Projection", TW_TYPE_BOOLCPP, &ctx.ortho_projection, "");
-    TwAddVarRW(tweakbar, "Background Color", TW_TYPE_COLOR3F, &ctx.background_color, "");
+
+    TwAddSeparator(tweakbar, "Misc", "");
+    TwAddVarRW(tweakbar, "Specular Power", TW_TYPE_FLOAT, &ctx.specular_power, "");
+    TwAddVarRW(tweakbar, "Zoom",     TW_TYPE_FLOAT,   &ctx.zoom_factor, " min=0.1 max=1.9 step=0.01");
 #endif // WITH_TWEAKBAR
 
     // Initialize rendering
