@@ -397,13 +397,13 @@ int main(void)
     Context ctx;
 
     // My settings
-    ctx.ambient_toggle  = true;
-    ctx.diffuse_toggle  = true;
-    ctx.specular_toggle = true;
-    ctx.gamma_toggle    = true;
-    ctx.invert_toggle   = false;
-    ctx.normal_toggle   = false;
-    ctx.zoom_factor     = 1.0f;
+    ctx.ambient_toggle   = true;
+    ctx.diffuse_toggle   = true;
+    ctx.specular_toggle  = true;
+    ctx.gamma_toggle     = true;
+    ctx.invert_toggle    = false;
+    ctx.normal_toggle    = false;
+    ctx.zoom_factor      = 1.0f;
     ctx.ortho_projection = false;
 
 
