@@ -66,6 +66,7 @@ struct Context {
     bool invert_toggle;
     bool normal_toggle;
     float zoom_factor;
+    bool ortho_projection;
 
     // Cubemaps
     GLuint cubemap_0;
@@ -213,8 +214,13 @@ void drawMesh(Context &ctx, GLuint program, const MeshVAO &meshVAO)
 
     glm::mat4 view           = glm::lookAt(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-    //glm::mat4 projection   = glm::ortho(-ctx.aspect, ctx.aspect, -1.0f, 1.0f, -1.0f, 1.0f);
-    glm::mat4 projection     = glm::perspective((3.14159f/2)*ctx.zoom_factor, (float)ctx.width/(float)ctx.height, 0.1f, 10.0f);
+    glm::mat4 projection;
+    if(ctx.ortho_projection) {
+      projection = glm::ortho(-ctx.aspect, ctx.aspect, -1.0f, 1.0f, -1.0f, 10.0f);
+    }
+    else {
+      projection = glm::perspective((3.14159f/2)*ctx.zoom_factor, (float)ctx.width/(float)ctx.height, 0.1f, 10.0f);
+    }
 
     glm::mat4 mv             = view * model;
     glm::mat4 mvp            = projection * mv;
@@ -398,6 +404,7 @@ int main(void)
     ctx.invert_toggle   = false;
     ctx.normal_toggle   = false;
     ctx.zoom_factor     = 1.0f;
+    ctx.ortho_projection = false;
 
 
     // Create a GLFW window
@@ -441,6 +448,7 @@ int main(void)
     TwAddVarRW(tweakbar, "Invert",   TW_TYPE_BOOLCPP, &ctx.invert_toggle, "");
     TwAddVarRW(tweakbar, "Normal",   TW_TYPE_BOOLCPP, &ctx.normal_toggle, "");
     TwAddVarRW(tweakbar, "Zoom",     TW_TYPE_FLOAT,   &ctx.zoom_factor, " min=0.1 max=1.9 step=0.01");
+    TwAddVarRW(tweakbar, "Orthogonal Projection", TW_TYPE_BOOLCPP, &ctx.ortho_projection, "");
 #endif // WITH_TWEAKBAR
 
     // Initialize rendering
