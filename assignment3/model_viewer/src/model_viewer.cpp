@@ -210,7 +210,7 @@ void drawMesh(Context &ctx, GLuint program, const MeshVAO &meshVAO)
 {
     // Define uniforms
     glm::mat4 model          = trackballGetRotationMatrix(ctx.trackball);
-    model                    = glm::scale(model, glm::vec3(0.7f));
+    model                    = glm::scale(model, glm::vec3(0.5f));
 
     glm::mat4 view           = glm::lookAt(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
