@@ -245,6 +245,34 @@ void initializeTrackball(Context &ctx)
 
 void init(Context &ctx)
 {
+    // General settings
+    ctx.ambient_toggle   = true;
+    ctx.diffuse_toggle   = true;
+    ctx.specular_toggle  = true;
+    ctx.gamma_toggle     = true;
+    ctx.invert_toggle    = false;
+    ctx.normal_toggle    = false;
+    ctx.zoom_factor      = 1.0f;
+    ctx.ortho_projection = false;
+
+    ctx.background_color[0] = 0.3f;
+    ctx.background_color[1] = 0.3f;
+    ctx.background_color[2] = 0.3f;
+    ctx.background_intensity = 1.0f;
+
+    ctx.eye_position = glm::vec3(0.0f, 0.0f, -1.0f);
+
+    // Uniforms
+    ctx.light_position = glm::vec3(0.0f, 3.0f, 0.0f);
+    ctx.light_color    = glm::vec3(1.0f);
+
+    ctx.ambient_color  = glm::vec3(0.3f, 0.0f, 0.0f);
+    ctx.diffuse_color  = glm::vec3(0.3f, 0.0f, 0.0f);
+    ctx.specular_color = glm::vec3(0.04f);
+
+    ctx.specular_power = 100.0f;
+
+    // Shader programs
     ctx.program = loadShaderProgram(shaderDir() + "mesh.vert",
                                     shaderDir() + "mesh.frag");
 
@@ -438,36 +466,6 @@ void resizeCallback(GLFWwindow* window, int width, int height)
 int main(void)
 {
     Context ctx;
-
-    // My settings
-    ctx.ambient_toggle   = true;
-    ctx.diffuse_toggle   = true;
-    ctx.specular_toggle  = true;
-    ctx.gamma_toggle     = true;
-    ctx.invert_toggle    = false;
-    ctx.normal_toggle    = false;
-    ctx.zoom_factor      = 1.0f;
-    ctx.ortho_projection = false;
-
-    ctx.background_color[0] = 0.3f;
-    ctx.background_color[1] = 0.3f;
-    ctx.background_color[2] = 0.3f;
-    ctx.background_intensity = 1.0f;
-
-    ctx.cubemap_choice = 1;
-
-    ctx.eye_position = glm::vec3(0.0f, 0.0f, -1.0f);
-
-    // Uniforms
-    ctx.light_position = glm::vec3(0.0f, 3.0f, 0.0f);
-    ctx.light_color    = glm::vec3(1.0f);
-
-    ctx.ambient_color  = glm::vec3(0.3f, 0.0f, 0.0f);
-    ctx.diffuse_color  = glm::vec3(0.3f, 0.0f, 0.0f);
-    ctx.specular_color = glm::vec3(0.04f);
-
-    ctx.specular_power = 100.0f;
-
 
     // Create a GLFW window
     glfwSetErrorCallback(errorCallback);
