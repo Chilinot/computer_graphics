@@ -292,7 +292,6 @@ void init(Context &ctx)
     // Shader programs
     ctx.program = loadShaderProgram(shaderDir() + "mesh.vert",
                                     shaderDir() + "mesh.frag");
-
     ctx.skyboxProgram = loadShaderProgram(shaderDir() + "skybox.vert",
                                           shaderDir() + "skybox.frag");
 
