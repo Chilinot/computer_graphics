@@ -142,6 +142,7 @@ struct Context {
     // Skybox
     GLuint skyboxProgram;
     GLuint skyboxCubemap;
+    GLuint skyboxVBO;
 };
 
 // Returns the value of an environment variable
@@ -235,6 +236,22 @@ void createMeshVAO(Context &ctx, const Mesh &mesh, MeshVAO *meshVAO)
     meshVAO->numIndices = mesh.indices.size();
 }
 
+void createSkyboxVAO(Context &ctx)
+{
+  // Generate 1 buffer and store the ID at ctx.skyboxVBO
+  glGenBuffers(1, &ctx.skyboxVBO);
+
+  // Bind the new VBO to the GL_ARRAY_BUFFER target
+  glBindBuffer(GL_ARRAY_BUFFER, ctx.skyboxVBO);
+
+  // Store the skyboxVertices array in the buffer bound to the GL_ARRAY_BUFFER target.
+  // Since the vertices of the skybox will never change we define the data as GL_STATIC_DRAW.
+  glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), skyboxVertices, GL_STATIC_DRAW);
+
+  // Specify the layout of the data in the VBO and store it in layout position 2 (first argument)
+  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLfloat*) 0);
+}
+
 void initializeTrackball(Context &ctx)
 {
     double radius = double(std::min(ctx.width, ctx.height)) / 2.0;
@@ -321,7 +338,16 @@ void drawMesh(Context &ctx, GLuint program, const MeshVAO &meshVAO)
     glm::mat4 mv  = view * model;
     glm::mat4 mvp = projection * mv;
 
-    // Activate program
+    // --- Skybox
+    glUseProgram(ctx.skyboxProgram);
+
+    glDepthMask(GL_FALSE);
+
+
+
+    glDepthMask(GL_TRUE);
+
+    // --- Regular Model
     glUseProgram(program);
 
     // Bind textures
