@@ -279,20 +279,24 @@ void init(Context &ctx)
     ctx.skyboxProgram = loadShaderProgram(shaderDir() + "skybox.vert",
                                           shaderDir() + "skybox.frag");
 
-    ctx.skyboxCubemap = loadCubemap(cubemapDir() + "/Forrest/prefiltered/2048");
-
-    loadMesh((modelDir() + "armadillo.obj"), &ctx.mesh);
+    // Mesh
+    loadMesh((modelDir() + "bunny.obj"), &ctx.mesh);
     createMeshVAO(ctx, ctx.mesh, &ctx.meshVAO);
 
-    // Load cubemap texture(s)
-    ctx.cubemap_0 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/0.125");
-    ctx.cubemap_1 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/0.5");
-    ctx.cubemap_2 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/2");
-    ctx.cubemap_3 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/8");
-    ctx.cubemap_4 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/32");
-    ctx.cubemap_5 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/128");
-    ctx.cubemap_6 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/512");
-    ctx.cubemap_7 = loadCubemap(cubemapDir() + "/Forrest/prefiltered/2048");
+    // Cubemaps
+    ctx.skyboxCubemap = loadCubemap(cubemapDir() + "/RomeChurch/prefiltered/2048");
+
+    // -- Load cubemap texture(s)
+    ctx.cubemap_0 = loadCubemap(cubemapDir() + "/RomeChurch/prefiltered/0.125");
+    ctx.cubemap_1 = loadCubemap(cubemapDir() + "/RomeChurch/prefiltered/0.5");
+    ctx.cubemap_2 = loadCubemap(cubemapDir() + "/RomeChurch/prefiltered/2");
+    ctx.cubemap_3 = loadCubemap(cubemapDir() + "/RomeChurch/prefiltered/8");
+    ctx.cubemap_4 = loadCubemap(cubemapDir() + "/RomeChurch/prefiltered/32");
+    ctx.cubemap_5 = loadCubemap(cubemapDir() + "/RomeChurch/prefiltered/128");
+    ctx.cubemap_6 = loadCubemap(cubemapDir() + "/RomeChurch/prefiltered/512");
+    ctx.cubemap_7 = loadCubemap(cubemapDir() + "/RomeChurch/prefiltered/2048");
+
+    ctx.cubemap_choice = 1;
 
     initializeTrackball(ctx);
 }
