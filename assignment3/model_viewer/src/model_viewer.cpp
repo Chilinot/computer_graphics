@@ -143,6 +143,7 @@ struct Context {
     GLuint skyboxProgram;
     GLuint skyboxCubemap;
     GLuint skyboxVBO;
+    GLuint skyboxVAO;
 };
 
 // Returns the value of an environment variable
@@ -241,6 +242,12 @@ void createSkyboxVAO(Context &ctx)
   // Generate 1 buffer and store the ID at ctx.skyboxVBO
   glGenBuffers(1, &ctx.skyboxVBO);
 
+  // Generate 1 VAO
+  glGenVertexArrays(1, &ctx.skyboxVAO);
+
+  // Bind the VAO
+  glBindVertexArray(ctx.skyboxVAO);
+
   // Bind the new VBO to the GL_ARRAY_BUFFER target
   glBindBuffer(GL_ARRAY_BUFFER, ctx.skyboxVBO);
 
@@ -250,6 +257,12 @@ void createSkyboxVAO(Context &ctx)
 
   // Specify the layout of the data in the VBO and store it in layout position 2 (first argument)
   glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLfloat*) 0);
+
+  // Enable the layout
+  glEnableVertexAttribArray(2);
+
+  // Unbind the VAO so that we don't accidentaly change anything in it
+  glBindVertexArray(ctx.defaultVAO);
 }
 
 void initializeTrackball(Context &ctx)
@@ -299,10 +312,11 @@ void init(Context &ctx)
     loadMesh((modelDir() + "bunny.obj"), &ctx.mesh);
     createMeshVAO(ctx, ctx.mesh, &ctx.meshVAO);
 
-    // Cubemaps
+    // Skybox
     ctx.skyboxCubemap = loadCubemap(cubemapDir() + "/RomeChurch/prefiltered/2048");
+    createSkyboxVAO(ctx);
 
-    // -- Load cubemap texture(s)
+    // Load cubemap texture(s)
     ctx.cubemap_0 = loadCubemap(cubemapDir() + "/RomeChurch/prefiltered/0.125");
     ctx.cubemap_1 = loadCubemap(cubemapDir() + "/RomeChurch/prefiltered/0.5");
     ctx.cubemap_2 = loadCubemap(cubemapDir() + "/RomeChurch/prefiltered/2");
@@ -338,11 +352,18 @@ void drawMesh(Context &ctx, GLuint program, const MeshVAO &meshVAO)
     glm::mat4 mvp = projection * mv;
 
     // --- Skybox
-    glUseProgram(ctx.skyboxProgram);
 
     glDepthMask(GL_FALSE);
 
+    glUseProgram(ctx.skyboxProgram);
 
+    glUniformMatrix4fv(glGetUniformLocation(ctx.skyboxProgram, "projection"), 1, GL_FALSE, &projection[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(ctx.skyboxProgram, "view"), 1, GL_FALSE, &view[0][0]);
+
+    glBindVertexArray(ctx.skyboxVAO);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, ctx.skyboxCubemap);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(ctx.defaultVAO);
 
     glDepthMask(GL_TRUE);
 

@@ -1,3 +1,6 @@
+#version 150
+#extension GL_ARB_explicit_attrib_location : require
+
 layout (location = 2) in vec3 position;
 out vec3 TexCoords;
 

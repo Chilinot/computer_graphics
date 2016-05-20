@@ -1,3 +1,5 @@
+#version 150
+
 in vec3 TexCoords;
 out vec4 color;
 
