@@ -623,9 +623,9 @@ int main(int argc, char** argv)
 
   // Pre-set simulations
   TwAddSeparator(tweakbar, NULL, "");
-  TwAddVarRW(tweakbar, "Fountain",  TW_TYPE_BOOLCPP, &ctx.simulate_fountain, "");
   //TwAddVarRW(tweakbar, "Tornado",  TW_TYPE_BOOLCPP, &ctx.simulate_tornado, "");
   TwAddVarRW(tweakbar, "Fire",  TW_TYPE_BOOLCPP, &ctx.simulate_fire, "");
+  TwAddVarRW(tweakbar, "Fountain",  TW_TYPE_BOOLCPP, &ctx.simulate_fountain, "");
   TwAddVarRW(tweakbar, "Explosion",  TW_TYPE_BOOLCPP, &ctx.simulate_explosion, "");
 
   // Start rendering loop
