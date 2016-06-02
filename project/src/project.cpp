@@ -26,6 +26,14 @@
 
 double lastTime;
 
+enum CurrentSimulation {
+  DEFAULT,
+  TORNADO,
+  FIRE,
+  FOUNTAIN,
+  EXPLOSION
+};
+
 // CPU representation of a particle
 struct Particle{
   glm::vec3 pos, speed;
@@ -59,6 +67,13 @@ void colorParticleGray(Particle &p)
     p.r = 100;
     p.g = 100;
     p.b = 100;
+}
+
+void colorParticleBlue(Particle &p)
+{
+    p.r = 53;
+    p.g = 202;
+    p.b = 239;
 }
 
 const int MaxParticles = 100000;
@@ -129,7 +144,14 @@ struct Context {
   glm::vec3 spawn_position;
 
   // Pre-set simulations
+  CurrentSimulation current_simulation;
+
+  bool simulate_fountain;
   bool simulate_tornado;
+  bool simulate_fire;
+  bool simulate_explosion;
+
+  double last_explosion;
 };
 
 GLuint createTriangleVAO()
@@ -219,15 +241,21 @@ void init(Context &ctx)
   ctx.gravity = -9.81f;
   ctx.spawn_direction = glm::vec3(0.0f, 10.0f, 0.0f);
   ctx.spread = 1.5f;
-  ctx.spawn_position = glm::vec3(0.0f, -10.0f, -20.0f);
+  ctx.spawn_position = glm::vec3(0.0f, 0.0f, 0.0f);
 
+  ctx.current_simulation = FOUNTAIN;
+  ctx.simulate_fountain = true;
   ctx.simulate_tornado = false;
+  ctx.simulate_fire = false;
+  ctx.simulate_explosion = false;
+
+  ctx.last_explosion = glfwGetTime();
 
   // Set FOV to 90-degrees
   ctx.fov = 3.14159/2;
 
   // Point camera towards the particle source
-  ctx.camera_direction = glm::vec3(0.0f, 0.0f, 1.0f);
+  ctx.camera_direction = glm::vec3(0.0f, 0.0f, 20.0f);
 
   ctx.particleProgram = loadShaderProgram(shaderDir() + "particle.vert",
       shaderDir() + "particle.frag");
@@ -247,7 +275,7 @@ void init(Context &ctx)
 
 int simulateParticles(Context &ctx, double delta, glm::vec3 CameraPosition)
 {
-  int ParticlesCount;
+  int ParticlesCount = 0;
 
   for(int i = 0; i < MaxParticles; i++){
 
@@ -259,22 +287,80 @@ int simulateParticles(Context &ctx, double delta, glm::vec3 CameraPosition)
       p.life -= delta;
       if (p.life > 0.0f){
 
-        static float radius = 0.01f;
-
         if(ctx.simulate_tornado) {
-          ctx.spawn_direction = glm::vec3(0.0f, 5.0f, 0.0f);
-          ctx.gravity = -1.5f;
-          ctx.spread = 1.6f;
-          p.speed += glm::vec3(radius * cos(lastTime), 0.01f, radius * sin(lastTime));
+          //ctx.spawn_direction = glm::vec3(0.0f, 5.0f, 0.0f);
+          //ctx.gravity = -1.5f;
+          //ctx.spread = 1.6f;
+          //p.speed += glm::vec3(radius * cos(lastTime), 0.01f, radius * sin(lastTime));
+        }
+        else if(ctx.simulate_fire) {
+          if(ctx.current_simulation != FIRE) {
+            ctx.spawn_direction = glm::vec3(0.0f, 0.5f, 0.0f);
+            ctx.spread = 1.6f;
+
+            ctx.current_simulation = FIRE;
+          }
+
+          p.speed += glm::vec3(0.0f, 1.5f, 0.0f) * (float) delta;
+
+          if(p.life < 3.3f) {
+            colorParticleGray(p);
+          }
+          else if(p.life < 4.0f) {
+            colorParticleYellow(p);
+          }
+          else if(p.life < 5.0f) {
+            colorParticleRed(p);
+          }
+        }
+        else if(ctx.simulate_fountain) {
+          if(ctx.current_simulation != FOUNTAIN) {
+            ctx.gravity = -9.81f;
+            ctx.spawn_direction = glm::vec3(0.0f, 10.0f, 0.0f);
+            ctx.spread = 1.5f;
+
+            ctx.current_simulation = FOUNTAIN;
+          }
+
+          colorParticleBlue(p);
+          p.speed += glm::vec3(0.0f, ctx.gravity, 0.0f) * (float) delta * 0.5f;
+        }
+        else if(ctx.simulate_explosion) {
+          if(ctx.current_simulation != EXPLOSION) {
+            ctx.spread = 30.0f;
+
+            ctx.current_simulation = EXPLOSION;
+          }
+
+          // Color particles similar to fire simulation
+          if(p.life < 4.0f) {
+            colorParticleGray(p);
+          }
+          else if(p.life < 4.5f) {
+            colorParticleYellow(p);
+          }
+          else if(p.life < 5.0f) {
+            colorParticleRed(p);
+          }
+
+          p.speed += glm::vec3(0.0f, 0.0f, 0.0f) * (float) delta * 0.5f;
         }
         else {
+          if(ctx.current_simulation != DEFAULT) {
+            ctx.gravity = -9.81f;
+            ctx.spawn_direction = glm::vec3(0.0f, 10.0f, 0.0f);
+            ctx.spread = 1.5f;
+            ctx.spawn_position = glm::vec3(0.0f, 0.0f, 0.0f);
+
+            ctx.current_simulation = DEFAULT;
+          }
+
+          colorParticleGray(p);
           p.speed += glm::vec3(0.0f, ctx.gravity, 0.0f) * (float) delta * 0.5f;
         }
 
-        // Simulate simple physics : gravity only, no collisions
         p.pos += p.speed * (float)delta;
         p.cameradistance = glm::length2( p.pos - CameraPosition );
-        //ParticlesContainer[i].pos += glm::vec3(0.0f,10.0f, 0.0f) * (float)delta;
 
         // Fill the GPU buffer
         g_particule_position_size_data[4*ParticlesCount+0] = p.pos.x;
@@ -282,14 +368,6 @@ int simulateParticles(Context &ctx, double delta, glm::vec3 CameraPosition)
         g_particule_position_size_data[4*ParticlesCount+2] = p.pos.z;
 
         g_particule_position_size_data[4*ParticlesCount+3] = p.size;
-
-        // Older particles
-        if(p.life < 4.0f) {
-          colorParticleGray(p);
-        }
-        else if(p.life < 4.5f) {
-          colorParticleYellow(p);
-        }
 
         g_particule_color_data[4*ParticlesCount+0] = p.r;
         g_particule_color_data[4*ParticlesCount+1] = p.g;
@@ -330,30 +408,35 @@ void drawParticles(Context &ctx)
   if (newparticles > (int)(0.016f*10000.0))
     newparticles = (int)(0.016f*10000.0);
 
-  for(int i=0; i<newparticles; i++){
-    int particleIndex = FindUnusedParticle();
-    ParticlesContainer[particleIndex].life = 5.0f; // This particle will live 5 seconds.
-    ParticlesContainer[particleIndex].pos = ctx.spawn_position;
+  if(ctx.current_simulation != EXPLOSION || (glfwGetTime() - ctx.last_explosion) > 2) {
+    for(int i=0; i<newparticles; i++){
+      int particleIndex = FindUnusedParticle();
+      ParticlesContainer[particleIndex].life = 5.0f; // This particle will live 5 seconds.
+      ParticlesContainer[particleIndex].pos = ctx.spawn_position + glm::vec3((rand()/(double)(RAND_MAX + 1)), (rand()/(double)(RAND_MAX + 1)), (rand()/(double)(RAND_MAX + 1)));
 
-    glm::vec3 randomdir = glm::vec3(
-        (rand()%2000 - 1000.0f)/1000.0f,
-        (rand()%2000 - 1000.0f)/1000.0f,
-        (rand()%2000 - 1000.0f)/1000.0f
-        );
+      glm::vec3 randomdir = glm::vec3(
+          (rand()%2000 - 1000.0f)/1000.0f,
+          (rand()%2000 - 1000.0f)/1000.0f,
+          (rand()%2000 - 1000.0f)/1000.0f
+          );
 
-    ParticlesContainer[particleIndex].speed = ctx.spawn_direction + randomdir * ctx.spread;
+      ParticlesContainer[particleIndex].speed = ctx.spawn_direction + randomdir * ctx.spread;
 
-    // Random colors
-    //ParticlesContainer[particleIndex].r = rand() % 256;
-    //ParticlesContainer[particleIndex].g = rand() % 256;
-    //ParticlesContainer[particleIndex].b = rand() % 256;
+      // Random colors
+      //ParticlesContainer[particleIndex].r = rand() % 256;
+      //ParticlesContainer[particleIndex].g = rand() % 256;
+      //ParticlesContainer[particleIndex].b = rand() % 256;
 
-    // Fire red
-    colorParticleRed(ParticlesContainer[particleIndex]);
+      colorParticleGray(ParticlesContainer[particleIndex]);
 
-    ParticlesContainer[particleIndex].a = (rand() % 256) / 3;
+      ParticlesContainer[particleIndex].a = (rand() % 256) / 3;
 
-    ParticlesContainer[particleIndex].size = (rand()%1000)/2000.0f + 0.1f;
+      ParticlesContainer[particleIndex].size = (rand()%1000)/2000.0f + 0.1f;
+    }
+
+    if(ctx.current_simulation == EXPLOSION) {
+      ctx.last_explosion = glfwGetTime();
+    }
   }
 
   // -- Simulate all particles
@@ -540,7 +623,10 @@ int main(int argc, char** argv)
 
   // Pre-set simulations
   TwAddSeparator(tweakbar, NULL, "");
-  TwAddVarRW(tweakbar, "Tornado",  TW_TYPE_BOOLCPP, &ctx.simulate_tornado, "");
+  TwAddVarRW(tweakbar, "Fountain",  TW_TYPE_BOOLCPP, &ctx.simulate_fountain, "");
+  //TwAddVarRW(tweakbar, "Tornado",  TW_TYPE_BOOLCPP, &ctx.simulate_tornado, "");
+  TwAddVarRW(tweakbar, "Fire",  TW_TYPE_BOOLCPP, &ctx.simulate_fire, "");
+  TwAddVarRW(tweakbar, "Explosion",  TW_TYPE_BOOLCPP, &ctx.simulate_explosion, "");
 
   // Start rendering loop
   while (!glfwWindowShouldClose(ctx.window)) {
