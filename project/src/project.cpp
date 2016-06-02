@@ -40,6 +40,27 @@ struct Particle{
   }
 };
 
+void colorParticleRed(Particle &p)
+{
+    p.r = 230;
+    p.g = 110;
+    p.b = 0;
+}
+
+void colorParticleYellow(Particle &p)
+{
+    p.r = 150;
+    p.g = 110;
+    p.b = 0;
+}
+
+void colorParticleGray(Particle &p)
+{
+    p.r = 100;
+    p.g = 100;
+    p.b = 100;
+}
+
 const int MaxParticles = 100000;
 Particle ParticlesContainer[MaxParticles];
 
@@ -98,11 +119,17 @@ struct Context {
   GLuint billboard_vertex_buffer, particles_position_buffer, particles_color_buffer;
   GLuint texture;
 
-  glm::vec3 camera_position;
+  glm::vec3 camera_direction;
 
 
   // Simulation settings
   float gravity;
+  glm::vec3 spawn_direction;
+  float spread;
+  glm::vec3 spawn_position;
+
+  // Pre-set simulations
+  bool simulate_tornado;
 };
 
 GLuint createTriangleVAO()
@@ -190,12 +217,17 @@ void init(Context &ctx)
 {
   // Simulation settings
   ctx.gravity = -9.81f;
+  ctx.spawn_direction = glm::vec3(0.0f, 10.0f, 0.0f);
+  ctx.spread = 1.5f;
+  ctx.spawn_position = glm::vec3(0.0f, -10.0f, -20.0f);
+
+  ctx.simulate_tornado = false;
 
   // Set FOV to 90-degrees
   ctx.fov = 3.14159/2;
 
   // Point camera towards the particle source
-  ctx.camera_position = glm::vec3(0.0f, 0.0f, 1.0f);
+  ctx.camera_direction = glm::vec3(0.0f, 0.0f, 1.0f);
 
   ctx.particleProgram = loadShaderProgram(shaderDir() + "particle.vert",
       shaderDir() + "particle.frag");
@@ -213,57 +245,13 @@ void init(Context &ctx)
   initializeTrackball(ctx);
 }
 
-void drawParticles(Context &ctx)
+int simulateParticles(Context &ctx, double delta, glm::vec3 CameraPosition)
 {
-  glBindVertexArray(ctx.particleVAO);
-  glUseProgram(ctx.particleProgram);
+  int ParticlesCount;
 
-  double currentTime = glfwGetTime();
-  double delta = currentTime - lastTime;
-  lastTime = currentTime;
+  for(int i = 0; i < MaxParticles; i++){
 
-  // -- Construct matrices
-  glm::mat4 view = glm::lookAt(ctx.camera_position, glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
-  glm::mat4 projection = glm::perspective(ctx.fov, ctx.aspect, 0.1f, 100.0f);
-  glm::mat4 viewProjection = projection * view;
-
-  glm::vec3 CameraPosition(glm::inverse(view)[3]);
-
-
-  // -- Create some new particles
-  int newparticles = (int)(delta*10000.0);
-  if (newparticles > (int)(0.016f*10000.0))
-    newparticles = (int)(0.016f*10000.0);
-
-  for(int i=0; i<newparticles; i++){
-    int particleIndex = FindUnusedParticle();
-    ParticlesContainer[particleIndex].life = 5.0f; // This particle will live 5 seconds.
-    ParticlesContainer[particleIndex].pos = glm::vec3(0,0,-20.0f);
-
-    float spread = 1.5f;
-    glm::vec3 maindir = glm::vec3(0.0f, 10.0f, 0.0f);
-
-    glm::vec3 randomdir = glm::vec3(
-        (rand()%2000 - 1000.0f)/1000.0f,
-        (rand()%2000 - 1000.0f)/1000.0f,
-        (rand()%2000 - 1000.0f)/1000.0f
-        );
-
-    ParticlesContainer[particleIndex].speed = maindir + randomdir*spread;
-
-    ParticlesContainer[particleIndex].r = rand() % 256;
-    ParticlesContainer[particleIndex].g = rand() % 256;
-    ParticlesContainer[particleIndex].b = rand() % 256;
-    ParticlesContainer[particleIndex].a = (rand() % 256) / 3;
-
-    ParticlesContainer[particleIndex].size = (rand()%1000)/2000.0f + 0.1f;
-  }
-
-  // -- Simulate all particles
-  int ParticlesCount = 0;
-  for(int i=0; i<MaxParticles; i++){
-
-    Particle& p = ParticlesContainer[i]; // shortcut
+    Particle& p = ParticlesContainer[i];
 
     if(p.life > 0.0f){
 
@@ -271,8 +259,19 @@ void drawParticles(Context &ctx)
       p.life -= delta;
       if (p.life > 0.0f){
 
+        static float radius = 0.01f;
+
+        if(ctx.simulate_tornado) {
+          ctx.spawn_direction = glm::vec3(0.0f, 5.0f, 0.0f);
+          ctx.gravity = -1.5f;
+          ctx.spread = 1.6f;
+          p.speed += glm::vec3(radius * cos(lastTime), 0.01f, radius * sin(lastTime));
+        }
+        else {
+          p.speed += glm::vec3(0.0f, ctx.gravity, 0.0f) * (float) delta * 0.5f;
+        }
+
         // Simulate simple physics : gravity only, no collisions
-        p.speed += glm::vec3(0.0f, ctx.gravity, 0.0f) * (float)delta * 0.5f;
         p.pos += p.speed * (float)delta;
         p.cameradistance = glm::length2( p.pos - CameraPosition );
         //ParticlesContainer[i].pos += glm::vec3(0.0f,10.0f, 0.0f) * (float)delta;
@@ -283,6 +282,14 @@ void drawParticles(Context &ctx)
         g_particule_position_size_data[4*ParticlesCount+2] = p.pos.z;
 
         g_particule_position_size_data[4*ParticlesCount+3] = p.size;
+
+        // Older particles
+        if(p.life < 4.0f) {
+          colorParticleGray(p);
+        }
+        else if(p.life < 4.5f) {
+          colorParticleYellow(p);
+        }
 
         g_particule_color_data[4*ParticlesCount+0] = p.r;
         g_particule_color_data[4*ParticlesCount+1] = p.g;
@@ -297,6 +304,60 @@ void drawParticles(Context &ctx)
       ParticlesCount++;
     }
   }
+
+  return ParticlesCount;
+}
+
+void drawParticles(Context &ctx)
+{
+  glBindVertexArray(ctx.particleVAO);
+  glUseProgram(ctx.particleProgram);
+
+  double currentTime = glfwGetTime();
+  double delta = currentTime - lastTime;
+  lastTime = currentTime;
+
+  // -- Construct matrices
+  glm::mat4 view = glm::lookAt(ctx.camera_direction, glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
+  glm::mat4 projection = glm::perspective(ctx.fov, ctx.aspect, 0.1f, 100.0f);
+  glm::mat4 viewProjection = projection * view;
+
+  glm::vec3 CameraPosition(glm::inverse(view)[3]);
+
+
+  // -- Create some new particles
+  int newparticles = (int)(delta*10000.0);
+  if (newparticles > (int)(0.016f*10000.0))
+    newparticles = (int)(0.016f*10000.0);
+
+  for(int i=0; i<newparticles; i++){
+    int particleIndex = FindUnusedParticle();
+    ParticlesContainer[particleIndex].life = 5.0f; // This particle will live 5 seconds.
+    ParticlesContainer[particleIndex].pos = ctx.spawn_position;
+
+    glm::vec3 randomdir = glm::vec3(
+        (rand()%2000 - 1000.0f)/1000.0f,
+        (rand()%2000 - 1000.0f)/1000.0f,
+        (rand()%2000 - 1000.0f)/1000.0f
+        );
+
+    ParticlesContainer[particleIndex].speed = ctx.spawn_direction + randomdir * ctx.spread;
+
+    // Random colors
+    //ParticlesContainer[particleIndex].r = rand() % 256;
+    //ParticlesContainer[particleIndex].g = rand() % 256;
+    //ParticlesContainer[particleIndex].b = rand() % 256;
+
+    // Fire red
+    colorParticleRed(ParticlesContainer[particleIndex]);
+
+    ParticlesContainer[particleIndex].a = (rand() % 256) / 3;
+
+    ParticlesContainer[particleIndex].size = (rand()%1000)/2000.0f + 0.1f;
+  }
+
+  // -- Simulate all particles
+  int ParticlesCount = simulateParticles(ctx, delta, CameraPosition);
 
   // Sort particles to ensure correct blending
   SortParticles();
@@ -468,7 +529,18 @@ int main(int argc, char** argv)
   TwWindowSize(ctx.width, ctx.height);
   TwBar *tweakbar = TwNewBar("Settings");
 
-  TwAddVarRW(tweakbar, "Eye Direction", TW_TYPE_DIR3F, &ctx.camera_position, "");
+  TwAddVarRW(tweakbar, "Eye Direction", TW_TYPE_DIR3F, &ctx.camera_direction, "");
+
+  // Simulation settings
+  TwAddSeparator(tweakbar, NULL, "");
+  TwAddVarRW(tweakbar, "Gravity", TW_TYPE_FLOAT, &ctx.gravity, "step=0.1");
+  TwAddVarRW(tweakbar, "Spawn Direction", TW_TYPE_DIR3F, &ctx.spawn_direction, "");
+  TwAddVarRW(tweakbar, "Spread", TW_TYPE_FLOAT, &ctx.spread, "step=0.1");
+  TwAddVarRW(tweakbar, "Spawn Position", TW_TYPE_DIR3F, &ctx.spawn_position, "");
+
+  // Pre-set simulations
+  TwAddSeparator(tweakbar, NULL, "");
+  TwAddVarRW(tweakbar, "Tornado",  TW_TYPE_BOOLCPP, &ctx.simulate_tornado, "");
 
   // Start rendering loop
   while (!glfwWindowShouldClose(ctx.window)) {
