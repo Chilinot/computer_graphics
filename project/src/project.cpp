@@ -76,29 +76,27 @@ void colorParticleBlue(Particle &p)
     p.b = 239;
 }
 
-const int MaxParticles = 100000;
-Particle ParticlesContainer[MaxParticles];
+const int maxParticles = 100000;
+Particle particlesContainer[maxParticles];
 
-void SortParticles(){
-	std::sort(&ParticlesContainer[0], &ParticlesContainer[MaxParticles]);
+void sortParticles()
+{
+  std::sort(&particlesContainer[0], &particlesContainer[maxParticles]);
 }
 
-int LastUsedParticle = 0;
+int lastUsedParticle = 0;
+int findUnusedParticle(){
 
-// Finds a Particle in ParticlesContainer which isn't used yet.
-// (i.e. life < 0);
-int FindUnusedParticle(){
-
-  for(int i=LastUsedParticle; i<MaxParticles; i++){
-    if (ParticlesContainer[i].life < 0){
-      LastUsedParticle = i;
+  for(int i=lastUsedParticle; i<maxParticles; i++){
+    if (particlesContainer[i].life < 0){
+      lastUsedParticle = i;
       return i;
     }
   }
 
-  for(int i=0; i<LastUsedParticle; i++){
-    if (ParticlesContainer[i].life < 0){
-      LastUsedParticle = i;
+  for(int i=0; i<lastUsedParticle; i++){
+    if (particlesContainer[i].life < 0){
+      lastUsedParticle = i;
       return i;
     }
   }
@@ -106,8 +104,8 @@ int FindUnusedParticle(){
   return 0; // All particles are taken, override the first one
 }
 
-static GLfloat* g_particule_position_size_data = new GLfloat[MaxParticles * 4];
-static GLubyte* g_particule_color_data         = new GLubyte[MaxParticles * 4];
+static GLfloat* g_particule_position_size_data = new GLfloat[maxParticles * 4];
+static GLubyte* g_particule_color_data         = new GLubyte[maxParticles * 4];
 
 // The attribute locations we will use in the vertex shader
 enum AttributeLocation {
@@ -152,6 +150,7 @@ struct Context {
   bool simulate_explosion;
 
   double last_explosion;
+  float explosion_delay;
 
   bool wind_enabled;
   glm::vec3 wind_vector;
@@ -199,13 +198,13 @@ GLuint createParticleVAO(Context &ctx)
   glGenBuffers(1, &ctx.particles_position_buffer);
   glBindBuffer(GL_ARRAY_BUFFER, ctx.particles_position_buffer);
   // Initialize with empty (NULL) buffer : it will be updated later, each frame.
-  glBufferData(GL_ARRAY_BUFFER, MaxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 
   // The VBO containing the colors of the particles
   glGenBuffers(1, &ctx.particles_color_buffer);
   glBindBuffer(GL_ARRAY_BUFFER, ctx.particles_color_buffer);
   // Initialize with empty (NULL) buffer : it will be updated later, each frame.
-  glBufferData(GL_ARRAY_BUFFER, MaxParticles * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
 
   // Generate VAO to store attributes
   glGenVertexArrays(1, &ctx.particleVAO);
@@ -253,6 +252,7 @@ void init(Context &ctx)
   ctx.simulate_explosion = false;
 
   ctx.last_explosion = glfwGetTime();
+  ctx.explosion_delay = 2.0f;
 
   ctx.wind_enabled = false;
   ctx.wind_vector = glm::vec3(0.02f, 0.0f, 0.0f);
@@ -270,27 +270,27 @@ void init(Context &ctx)
 
   ctx.texture = loadDDS((resourceDir() + "particle.DDS").c_str());
 
-  for(int i=0; i<MaxParticles; i++){
-    ParticlesContainer[i].life = -1.0f;
-    ParticlesContainer[i].cameradistance = -1.0f;
+  for(int i=0; i<maxParticles; i++){
+    particlesContainer[i].life = -1.0f;
+    particlesContainer[i].cameradistance = -1.0f;
   }
 
   createParticleVAO(ctx);
   initializeTrackball(ctx);
 }
 
-int simulateParticles(Context &ctx, double delta, glm::vec3 CameraPosition)
+int simulateParticles(Context &ctx, double delta, glm::vec3 cameraPosition)
 {
   static int horizontal_ticker = 0;
 
-  horizontal_ticker += 5;
+  horizontal_ticker += 1;
   horizontal_ticker = horizontal_ticker % 360;
 
-  int ParticlesCount = 0;
+  int particlesCount = 0;
 
-  for(int i = 0; i < MaxParticles; i++){
+  for(int i = 0; i < maxParticles; i++){
 
-    Particle& p = ParticlesContainer[i];
+    Particle& p = particlesContainer[i];
 
     if(p.life > 0.0f){
 
@@ -299,24 +299,26 @@ int simulateParticles(Context &ctx, double delta, glm::vec3 CameraPosition)
       if (p.life > 0.0f){
 
         if(ctx.simulate_tornado) {
+          static int radius = 50;
           if(ctx.current_simulation != TORNADO) {
             ctx.spawn_direction = glm::vec3(0.0f, 0.0f, 0.0f);
-            ctx.gravity = 0.0f;
+            ctx.gravity = 140.0f;
             ctx.spread = 1.6f;
 
             ctx.current_simulation = TORNADO;
           }
-          p.speed = glm::vec3(10 * cos(degreeToRadians(horizontal_ticker)), 0.5f, 10 * sin(degreeToRadians(horizontal_ticker))) * (float) delta;
+          p.speed = glm::vec3(radius * cos(degreeToRadians(horizontal_ticker)), ctx.gravity, radius * sin(degreeToRadians(horizontal_ticker))) * (float) delta;
         }
         else if(ctx.simulate_fire) {
           if(ctx.current_simulation != FIRE) {
             ctx.spawn_direction = glm::vec3(0.0f, 0.5f, 0.0f);
+            ctx.gravity = 1.5f;
             ctx.spread = 1.6f;
 
             ctx.current_simulation = FIRE;
           }
 
-          p.speed += glm::vec3(0.0f, 1.5f, 0.0f) * (float) delta;
+          p.speed += glm::vec3(0.0f, ctx.gravity, 0.0f) * (float) delta;
 
           if(p.life < 3.3f) {
             colorParticleGray(p);
@@ -343,6 +345,7 @@ int simulateParticles(Context &ctx, double delta, glm::vec3 CameraPosition)
         else if(ctx.simulate_explosion) {
           if(ctx.current_simulation != EXPLOSION) {
             ctx.spread = 30.0f;
+            ctx.gravity = 0.0f;
 
             ctx.current_simulation = EXPLOSION;
           }
@@ -358,7 +361,7 @@ int simulateParticles(Context &ctx, double delta, glm::vec3 CameraPosition)
             colorParticleRed(p);
           }
 
-          p.speed += glm::vec3(0.0f, 0.0f, 0.0f) * (float) delta * 0.5f;
+          p.speed += glm::vec3(0.0f, ctx.gravity, 0.0f) * (float) delta * 0.5f;
         }
         else {
           if(ctx.current_simulation != DEFAULT) {
@@ -385,30 +388,30 @@ int simulateParticles(Context &ctx, double delta, glm::vec3 CameraPosition)
         }
 
         p.pos += p.speed * (float)delta;
-        p.cameradistance = glm::length2( p.pos - CameraPosition );
+        p.cameradistance = glm::length2( p.pos - cameraPosition );
 
         // Fill the GPU buffer
-        g_particule_position_size_data[4*ParticlesCount+0] = p.pos.x;
-        g_particule_position_size_data[4*ParticlesCount+1] = p.pos.y;
-        g_particule_position_size_data[4*ParticlesCount+2] = p.pos.z;
+        g_particule_position_size_data[4*particlesCount+0] = p.pos.x;
+        g_particule_position_size_data[4*particlesCount+1] = p.pos.y;
+        g_particule_position_size_data[4*particlesCount+2] = p.pos.z;
 
-        g_particule_position_size_data[4*ParticlesCount+3] = p.size;
+        g_particule_position_size_data[4*particlesCount+3] = p.size;
 
-        g_particule_color_data[4*ParticlesCount+0] = p.r;
-        g_particule_color_data[4*ParticlesCount+1] = p.g;
-        g_particule_color_data[4*ParticlesCount+2] = p.b;
-        g_particule_color_data[4*ParticlesCount+3] = p.a;
+        g_particule_color_data[4*particlesCount+0] = p.r;
+        g_particule_color_data[4*particlesCount+1] = p.g;
+        g_particule_color_data[4*particlesCount+2] = p.b;
+        g_particule_color_data[4*particlesCount+3] = p.a;
 
       }else{
-        // Particles that just died will be put at the end of the buffer in SortParticles();
+        // Particles that just died will be put at the end of the buffer in sortParticles();
         p.cameradistance = -1.0f;
       }
 
-      ParticlesCount++;
+      particlesCount++;
     }
   }
 
-  return ParticlesCount;
+  return particlesCount;
 }
 
 void drawParticles(Context &ctx)
@@ -425,19 +428,23 @@ void drawParticles(Context &ctx)
   glm::mat4 projection = glm::perspective(ctx.fov, ctx.aspect, 0.1f, 100.0f);
   glm::mat4 viewProjection = projection * view;
 
-  glm::vec3 CameraPosition(glm::inverse(view)[3]);
-
+  glm::vec3 cameraPosition(glm::inverse(view)[3]);
 
   // -- Create some new particles
   int newparticles = (int)(delta*10000.0);
   if (newparticles > (int)(0.016f*10000.0))
     newparticles = (int)(0.016f*10000.0);
 
-  if(ctx.current_simulation != EXPLOSION || (glfwGetTime() - ctx.last_explosion) > 2) {
+  if(ctx.current_simulation != EXPLOSION || (glfwGetTime() - ctx.last_explosion) > ctx.explosion_delay) {
     for(int i=0; i<newparticles; i++){
-      int particleIndex = FindUnusedParticle();
-      ParticlesContainer[particleIndex].life = 5.0f; // This particle will live 5 seconds.
-      ParticlesContainer[particleIndex].pos = ctx.spawn_position + glm::vec3((rand()/(double)(RAND_MAX + 1)), (rand()/(double)(RAND_MAX + 1)), (rand()/(double)(RAND_MAX + 1)));
+
+      int particleIndex = findUnusedParticle();
+
+      particlesContainer[particleIndex].life = 5.0f; // This particle will live 5 seconds.
+      particlesContainer[particleIndex].pos = ctx.spawn_position;
+
+      // Add some random offset to each position
+      particlesContainer[particleIndex].pos += glm::vec3((rand()/(double)(RAND_MAX + 1)), (rand()/(double)(RAND_MAX + 1)), (rand()/(double)(RAND_MAX + 1)));;
 
       glm::vec3 randomdir = glm::vec3(
           (rand()%2000 - 1000.0f)/1000.0f,
@@ -445,18 +452,18 @@ void drawParticles(Context &ctx)
           (rand()%2000 - 1000.0f)/1000.0f
           );
 
-      ParticlesContainer[particleIndex].speed = ctx.spawn_direction + randomdir * ctx.spread;
+      particlesContainer[particleIndex].speed = ctx.spawn_direction + randomdir * ctx.spread;
 
       // Random colors
-      //ParticlesContainer[particleIndex].r = rand() % 256;
-      //ParticlesContainer[particleIndex].g = rand() % 256;
-      //ParticlesContainer[particleIndex].b = rand() % 256;
+      //particlesContainer[particleIndex].r = rand() % 256;
+      //particlesContainer[particleIndex].g = rand() % 256;
+      //particlesContainer[particleIndex].b = rand() % 256;
 
-      colorParticleGray(ParticlesContainer[particleIndex]);
+      colorParticleGray(particlesContainer[particleIndex]);
 
-      ParticlesContainer[particleIndex].a = (rand() % 256) / 3;
+      particlesContainer[particleIndex].a = (rand() % 256) / 3;
 
-      ParticlesContainer[particleIndex].size = (rand()%1000)/2000.0f + 0.1f;
+      particlesContainer[particleIndex].size = (rand()%1000)/2000.0f + 0.1f;
     }
 
     if(ctx.current_simulation == EXPLOSION) {
@@ -465,18 +472,18 @@ void drawParticles(Context &ctx)
   }
 
   // -- Simulate all particles
-  int ParticlesCount = simulateParticles(ctx, delta, CameraPosition);
+  int ParticlesCount = simulateParticles(ctx, delta, cameraPosition);
 
   // Sort particles to ensure correct blending
-  SortParticles();
+  sortParticles();
 
   // Update buffers
   glBindBuffer(GL_ARRAY_BUFFER, ctx.particles_position_buffer);
-  glBufferData(GL_ARRAY_BUFFER, MaxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
+  glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
   glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof(GLfloat) * 4, g_particule_position_size_data);
 
   glBindBuffer(GL_ARRAY_BUFFER, ctx.particles_color_buffer);
-  glBufferData(GL_ARRAY_BUFFER, MaxParticles * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
+  glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
   glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof(GLubyte) * 4, g_particule_color_data);
 
   // Set blending options
@@ -511,8 +518,7 @@ void drawParticles(Context &ctx)
 
 void display(Context &ctx)
 {
-  // Gray background
-  glClearColor(0.3, 0.3, 0.3, 1.0);
+  glClearColor(1.0, 1.0, 1.0, 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   drawParticles(ctx);
@@ -648,12 +654,13 @@ int main(int argc, char** argv)
 
   // Pre-set simulations
   TwAddSeparator(tweakbar, NULL, "");
-  //TwAddVarRW(tweakbar, "Tornado",  TW_TYPE_BOOLCPP, &ctx.simulate_tornado, "");
+  TwAddVarRW(tweakbar, "Tornado",  TW_TYPE_BOOLCPP, &ctx.simulate_tornado, "");
   TwAddVarRW(tweakbar, "Fire",  TW_TYPE_BOOLCPP, &ctx.simulate_fire, "");
   TwAddVarRW(tweakbar, "Fountain",  TW_TYPE_BOOLCPP, &ctx.simulate_fountain, "");
   TwAddVarRW(tweakbar, "Explosion",  TW_TYPE_BOOLCPP, &ctx.simulate_explosion, "");
 
   TwAddSeparator(tweakbar, NULL, "");
+  TwAddVarRW(tweakbar, "Explosion delay", TW_TYPE_FLOAT, &ctx.explosion_delay, "step=0.1 min=0.0");
   TwAddVarRW(tweakbar, "Enable wind",  TW_TYPE_BOOLCPP, &ctx.wind_enabled, "");
   TwAddVarRW(tweakbar, "Wind direction", TW_TYPE_DIR3F, &ctx.wind_vector, "");
 
