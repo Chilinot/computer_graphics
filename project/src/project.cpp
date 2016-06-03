@@ -265,7 +265,7 @@ void init(Context &ctx)
 
   lastTime = glfwGetTime();
 
-  ctx.texture = load2DTexture((resourceDir() + "lightsabericonblue.png").c_str());
+  ctx.texture = load2DTexture((resourceDir() + "whitelight.png").c_str());
 
   for(int i=0; i<maxParticles; i++){
     particlesContainer[i].life = -1.0f;
