@@ -195,13 +195,13 @@ GLuint createParticleVAO(Context &ctx)
   glGenBuffers(1, &ctx.particles_position_buffer);
   glBindBuffer(GL_ARRAY_BUFFER, ctx.particles_position_buffer);
   // Initialize with empty (NULL) buffer : it will be updated later, each frame.
-  glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
 
   // The VBO containing the colors of the particles
   glGenBuffers(1, &ctx.particles_color_buffer);
   glBindBuffer(GL_ARRAY_BUFFER, ctx.particles_color_buffer);
   // Initialize with empty (NULL) buffer : it will be updated later, each frame.
-  glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLubyte), NULL, GL_DYNAMIC_DRAW);
 
   // Generate VAO to store attributes
   glGenVertexArrays(1, &ctx.particleVAO);
@@ -474,12 +474,12 @@ void drawParticles(Context &ctx)
   // -- Update buffers with latest data from simulation
   // Position
   glBindBuffer(GL_ARRAY_BUFFER, ctx.particles_position_buffer);
-  glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
   glBufferSubData(GL_ARRAY_BUFFER, 0, particlesCount * sizeof(GLfloat) * 4, g_particule_position_size_data);
 
   // Color
   glBindBuffer(GL_ARRAY_BUFFER, ctx.particles_color_buffer);
-  glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLubyte), NULL, GL_DYNAMIC_DRAW);
   glBufferSubData(GL_ARRAY_BUFFER, 0, particlesCount * sizeof(GLubyte) * 4, g_particule_color_data);
 
   // -- Blending
