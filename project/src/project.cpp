@@ -317,13 +317,13 @@ int simulateParticles(Context &ctx, double delta, glm::vec3 cameraPosition)
 
           p.speed += glm::vec3(0.0f, ctx.gravity, 0.0f) * (float) delta;
 
-          if(p.life < 3.3f) {
+          if(p.life < 1.0f) {
             colorParticleGray(p);
           }
-          else if(p.life < 4.0f) {
+          else if(p.life < 1.5f) {
             colorParticleYellow(p);
           }
-          else if(p.life < 5.0f) {
+          else if(p.life < 2.0f) {
             colorParticleRed(p);
           }
         }
@@ -422,7 +422,13 @@ void spawnNewParticles(Context &ctx, double delta)
 
       int particleIndex = findUnusedParticle();
 
-      particlesContainer[particleIndex].life = 5.0f; // This particle will live 5 seconds.
+      if(ctx.simulate_fire) {
+        particlesContainer[particleIndex].life = 2.0f;
+      }
+      else {
+        particlesContainer[particleIndex].life = 5.0f;
+      }
+
       particlesContainer[particleIndex].pos = ctx.spawn_position;
 
       // Add some random offset to each position
