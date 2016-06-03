@@ -451,11 +451,6 @@ void drawParticles(Context &ctx)
 
       particlesContainer[particleIndex].speed = ctx.spawn_direction + randomdir * ctx.spread;
 
-      // Random colors
-      //particlesContainer[particleIndex].r = rand() % 256;
-      //particlesContainer[particleIndex].g = rand() % 256;
-      //particlesContainer[particleIndex].b = rand() % 256;
-
       colorParticleGray(particlesContainer[particleIndex]);
 
       particlesContainer[particleIndex].a = (rand() % 256) / 3;
@@ -469,7 +464,7 @@ void drawParticles(Context &ctx)
   }
 
   // -- Simulate all particles
-  int ParticlesCount = simulateParticles(ctx, delta, cameraPosition);
+  int particlesCount = simulateParticles(ctx, delta, cameraPosition);
 
   // Sort particles to ensure correct blending
   sortParticles();
@@ -477,11 +472,11 @@ void drawParticles(Context &ctx)
   // Update buffers
   glBindBuffer(GL_ARRAY_BUFFER, ctx.particles_position_buffer);
   glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
-  glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof(GLfloat) * 4, g_particule_position_size_data);
+  glBufferSubData(GL_ARRAY_BUFFER, 0, particlesCount * sizeof(GLfloat) * 4, g_particule_position_size_data);
 
   glBindBuffer(GL_ARRAY_BUFFER, ctx.particles_color_buffer);
   glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
-  glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof(GLubyte) * 4, g_particule_color_data);
+  glBufferSubData(GL_ARRAY_BUFFER, 0, particlesCount * sizeof(GLubyte) * 4, g_particule_color_data);
 
   // Set blending options
   glEnable(GL_BLEND);
@@ -492,13 +487,14 @@ void drawParticles(Context &ctx)
   // Bind our texture in Texture Unit 0
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, ctx.texture);
+
   // Tell fragment shader to use texture unit 0
-  glUniform1i(glGetUniformLocation(ctx.particleProgram, "myTextureSampler"), 0);
+  glUniform1i(glGetUniformLocation(ctx.particleProgram, "u_input_texture"), 0);
 
-  glUniform3f(glGetUniformLocation(ctx.particleProgram, "CameraRight_worldspace"), view[0][0], view[1][0], view[2][0]);
-  glUniform3f(glGetUniformLocation(ctx.particleProgram, "CameraUp_worldspace")   , view[0][1], view[1][1], view[2][1]);
-
-  glUniformMatrix4fv(glGetUniformLocation(ctx.particleProgram, "VP"), 1, GL_FALSE, &viewProjection[0][0]);
+  // For vertex shader
+  glUniform3f(glGetUniformLocation(ctx.particleProgram, "u_camera_right"), view[0][0], view[1][0], view[2][0]);
+  glUniform3f(glGetUniformLocation(ctx.particleProgram, "u_camera_up")   , view[0][1], view[1][1], view[2][1]);
+  glUniformMatrix4fv(glGetUniformLocation(ctx.particleProgram, "u_VP"), 1, GL_FALSE, &viewProjection[0][0]);
 
   // -- Rendering time
 
@@ -506,7 +502,7 @@ void drawParticles(Context &ctx)
   glVertexAttribDivisor(1, 1); // positions : one per quad (its center) -> 1
   glVertexAttribDivisor(2, 1); // color : one per quad -> 1
 
-  glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, ParticlesCount);
+  glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, particlesCount);
 
   // Reset to defaults
   glBindVertexArray(ctx.defaultVAO);
