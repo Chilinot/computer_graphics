@@ -1,8 +1,25 @@
 \section{Introduction}
-Particle systems are widely used in simulations, games, movies, etc. They can be used to simulate and visualize smoke, water, fire, chemical reactions, clouds, even entire galaxies and star systems. Particle systems have for example been used in fluid dynamics to model turbulent flows \cite{course_book}.
+Particle systems are widely used in simulations, games, movies, etc. They can be used to simulate and visualize smoke, water, fireworks, chemical reactions, clouds, even entire galaxies and star systems. Particle systems have for example been used in fluid dynamics to model turbulent flows \cite{course_book}. Another example of usage is in the movie "Star Trek II: The Wrath of Khan" \cite{particle_systems} where an entire planet is engulfed in fire.
 
-In this project a simple version of a particle system has been implemented in order to simulate and visualize four different effects, namely fire, an explosion, a fountain, and a simple tornado. Screenshots of these four can be seen in figure \ref{fig:simulations}.
+In this project a simple version of a particle system have been implemented in order to simulate and visualize four different models; namely fire, explosion, a fountain, and a simple tornado. Screenshots of these four models can be seen in figure \ref{fig:simulations}.
+
+The project can besides these models be tweaked using the built in "tweakbar" (a simple GUI pop up) to simulate different conditions for the particles, allowing the user to create his or her own simulation model. Some of the conditions that can be modified with this tweakbar are: gravity, wind, spread, initial direction, etc.
 
 \section{Approach}
+%TODO create a smother entrance to this section.
+
+%TODO how are the particles created and removed?
+The particles are created and removed each time the frame is updated. They have a maximum lifespan of five seconds for all simulated models except the fire model, which has a maximum lifespan of two seconds. For the explosion and fire models the particles are coloured based on how long they have lived. Giving the models a more realistic appearance.
+
+%TODO how is the memory handled on the GPU?
+Data about the particles such as their location, size, and colour are stored inside buffers on the GPU. Each simulation step is calculated on the CPU, after which the results are sent to these buffers and a new draw call is issued. The GPU then uses the data stored in these buffers to render the particles onto the screen.
+
+%TODO write about how their speed is calculated for each effect
+Using the conditions defined by the tweakbar, the simulation step calculates a speed vector for each individual particle which is then used to calculate their next position. Each time a new simulation model is selected using the tweakbar, the model sets the values necessary to simulate it. The user can then fine tune the settings using the tweakbar to further improve or test the model.
 
 \section{Conclusion}
+%TODO how hard was it to implement?
+%The implementation was fairly straightforward in its difficulty.
+Using the system implemented for this project I have been successful in simulating approximations of four different models. I am not fully satisfied with the tornado model, I think I could have made that better if I spent more time on it, but as of now I consider it "good enough".
+
+%TODO how well does the result compare to reality?
