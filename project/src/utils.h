@@ -8,6 +8,11 @@
 #include <string>
 #include <vector>
 
+float degreeToRadians(int degree)
+{
+  return (float) (degree * 3.14159265 / 180);
+}
+
 // Returns the value of an environment variable
 std::string getEnvVar(const std::string &name)
 {

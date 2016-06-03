@@ -152,6 +152,9 @@ struct Context {
   bool simulate_explosion;
 
   double last_explosion;
+
+  bool wind_enabled;
+  glm::vec3 wind_vector;
 };
 
 GLuint createTriangleVAO()
@@ -251,6 +254,9 @@ void init(Context &ctx)
 
   ctx.last_explosion = glfwGetTime();
 
+  ctx.wind_enabled = false;
+  ctx.wind_vector = glm::vec3(0.02f, 0.0f, 0.0f);
+
   // Set FOV to 90-degrees
   ctx.fov = 3.14159/2;
 
@@ -275,6 +281,11 @@ void init(Context &ctx)
 
 int simulateParticles(Context &ctx, double delta, glm::vec3 CameraPosition)
 {
+  static int horizontal_ticker = 0;
+
+  horizontal_ticker += 5;
+  horizontal_ticker = horizontal_ticker % 360;
+
   int ParticlesCount = 0;
 
   for(int i = 0; i < MaxParticles; i++){
@@ -288,10 +299,14 @@ int simulateParticles(Context &ctx, double delta, glm::vec3 CameraPosition)
       if (p.life > 0.0f){
 
         if(ctx.simulate_tornado) {
-          //ctx.spawn_direction = glm::vec3(0.0f, 5.0f, 0.0f);
-          //ctx.gravity = -1.5f;
-          //ctx.spread = 1.6f;
-          //p.speed += glm::vec3(radius * cos(lastTime), 0.01f, radius * sin(lastTime));
+          if(ctx.current_simulation != TORNADO) {
+            ctx.spawn_direction = glm::vec3(0.0f, 0.0f, 0.0f);
+            ctx.gravity = 0.0f;
+            ctx.spread = 1.6f;
+
+            ctx.current_simulation = TORNADO;
+          }
+          p.speed = glm::vec3(10 * cos(degreeToRadians(horizontal_ticker)), 0.5f, 10 * sin(degreeToRadians(horizontal_ticker))) * (float) delta;
         }
         else if(ctx.simulate_fire) {
           if(ctx.current_simulation != FIRE) {
@@ -357,6 +372,16 @@ int simulateParticles(Context &ctx, double delta, glm::vec3 CameraPosition)
 
           colorParticleGray(p);
           p.speed += glm::vec3(0.0f, ctx.gravity, 0.0f) * (float) delta * 0.5f;
+        }
+
+        if(ctx.wind_enabled) {
+          //if(rand() % 1) {
+          //  p.speed += glm::vec3(cos(glfwGetTime()) * 0.01f, 0.0f, cos(glfwGetTime()) * 0.01f);
+          //}
+          //else {
+          //  p.speed += glm::vec3(sin(glfwGetTime()) * 0.01f, 0.0f, sin(glfwGetTime()) * 0.01f);
+          //}
+          p.speed += ctx.wind_vector;
         }
 
         p.pos += p.speed * (float)delta;
@@ -627,6 +652,10 @@ int main(int argc, char** argv)
   TwAddVarRW(tweakbar, "Fire",  TW_TYPE_BOOLCPP, &ctx.simulate_fire, "");
   TwAddVarRW(tweakbar, "Fountain",  TW_TYPE_BOOLCPP, &ctx.simulate_fountain, "");
   TwAddVarRW(tweakbar, "Explosion",  TW_TYPE_BOOLCPP, &ctx.simulate_explosion, "");
+
+  TwAddSeparator(tweakbar, NULL, "");
+  TwAddVarRW(tweakbar, "Enable wind",  TW_TYPE_BOOLCPP, &ctx.wind_enabled, "");
+  TwAddVarRW(tweakbar, "Wind direction", TW_TYPE_DIR3F, &ctx.wind_vector, "");
 
   // Start rendering loop
   while (!glfwWindowShouldClose(ctx.window)) {
