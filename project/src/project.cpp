@@ -18,9 +18,6 @@
 #include <cstdlib>
 #include <algorithm>
 
-// From tutorial
-#include <texture.hpp>
-
 // -- MACROS
 #define GLM_FORCE_RADIANS
 
@@ -268,7 +265,7 @@ void init(Context &ctx)
 
   lastTime = glfwGetTime();
 
-  ctx.texture = loadDDS((resourceDir() + "particle.DDS").c_str());
+  ctx.texture = load2DTexture((resourceDir() + "lightsabericonblue.png").c_str());
 
   for(int i=0; i<maxParticles; i++){
     particlesContainer[i].life = -1.0f;

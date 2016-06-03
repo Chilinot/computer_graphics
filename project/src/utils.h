@@ -1,12 +1,37 @@
 #pragma once
 
 #include <GL/glew.h>
+#include <lodepng.h>
 
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <vector>
+
+GLuint load2DTexture(const std::string &filename)
+{
+    std::vector<unsigned char> data;
+    unsigned width, height;
+    unsigned error = lodepng::decode(data, width, height, filename);
+    if (error != 0) {
+        std::cout << "Error: " << lodepng_error_text(error) << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, &(data[0]));
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    return texture;
+}
 
 float degreeToRadians(int degree)
 {

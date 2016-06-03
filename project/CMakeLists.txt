@@ -40,10 +40,6 @@ include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/external/glm")
 aux_source_directory("${CMAKE_CURRENT_SOURCE_DIR}/external/lodepng" comp_graph_project_SRCS)
 include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/external/lodepng")
 
-# common
-aux_source_directory("${CMAKE_CURRENT_SOURCE_DIR}/external/common" comp_graph_project_SRCS)
-include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/external/common")
-
 # AntTweakBar (uncomment to enable)
 aux_source_directory("${CMAKE_CURRENT_SOURCE_DIR}/external/anttweakbar/src" comp_graph_project_SRCS)
 include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/external/anttweakbar/include")
