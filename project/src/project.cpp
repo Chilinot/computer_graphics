@@ -411,23 +411,8 @@ int simulateParticles(Context &ctx, double delta, glm::vec3 cameraPosition)
   return particlesCount;
 }
 
-void drawParticles(Context &ctx)
+void spawnNewParticles(Context &ctx, double delta)
 {
-  glBindVertexArray(ctx.particleVAO);
-  glUseProgram(ctx.particleProgram);
-
-  double currentTime = glfwGetTime();
-  double delta = currentTime - lastTime;
-  lastTime = currentTime;
-
-  // -- Construct matrices
-  glm::mat4 view = glm::lookAt(ctx.camera_direction, glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
-  glm::mat4 projection = glm::perspective(ctx.fov, ctx.aspect, 0.1f, 100.0f);
-  glm::mat4 viewProjection = projection * view;
-
-  glm::vec3 cameraPosition(glm::inverse(view)[3]);
-
-  // -- Create some new particles
   int newparticles = (int)(delta*10000.0);
   if (newparticles > (int)(0.016f*10000.0))
     newparticles = (int)(0.016f*10000.0);
@@ -462,27 +447,54 @@ void drawParticles(Context &ctx)
       ctx.last_explosion = glfwGetTime();
     }
   }
+}
+
+void drawParticles(Context &ctx)
+{
+  glBindVertexArray(ctx.particleVAO);
+  glUseProgram(ctx.particleProgram);
+
+  double currentTime = glfwGetTime();
+  double delta = currentTime - lastTime;
+  lastTime = currentTime;
+
+  // -- Construct matrices
+  glm::mat4 view = glm::lookAt(ctx.camera_direction, glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
+  glm::mat4 projection = glm::perspective(ctx.fov, ctx.aspect, 0.1f, 100.0f);
+  glm::mat4 viewProjection = projection * view;
+
+  glm::vec3 cameraPosition(glm::inverse(view)[3]);
+
+  // -- Create some new particles
+  spawnNewParticles(ctx, delta);
 
   // -- Simulate all particles
   int particlesCount = simulateParticles(ctx, delta, cameraPosition);
 
-  // Sort particles to ensure correct blending
-  sortParticles();
-
-  // Update buffers
+  // -- Update buffers with latest data from simulation
+  // Position
   glBindBuffer(GL_ARRAY_BUFFER, ctx.particles_position_buffer);
-  glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
+  glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
   glBufferSubData(GL_ARRAY_BUFFER, 0, particlesCount * sizeof(GLfloat) * 4, g_particule_position_size_data);
 
+  // Color
   glBindBuffer(GL_ARRAY_BUFFER, ctx.particles_color_buffer);
-  glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
+  glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
   glBufferSubData(GL_ARRAY_BUFFER, 0, particlesCount * sizeof(GLubyte) * 4, g_particule_color_data);
+
+  // -- Blending
+  // Sort particles to ensure correct blending
+  sortParticles();
 
   // Set blending options
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   // -- Pass uniforms
+  // For vertex shader
+  glUniform3f(glGetUniformLocation(ctx.particleProgram, "u_camera_right"), view[0][0], view[1][0], view[2][0]);
+  glUniform3f(glGetUniformLocation(ctx.particleProgram, "u_camera_up")   , view[0][1], view[1][1], view[2][1]);
+  glUniformMatrix4fv(glGetUniformLocation(ctx.particleProgram, "u_VP"), 1, GL_FALSE, &viewProjection[0][0]);
 
   // Bind our texture in Texture Unit 0
   glActiveTexture(GL_TEXTURE0);
@@ -491,13 +503,7 @@ void drawParticles(Context &ctx)
   // Tell fragment shader to use texture unit 0
   glUniform1i(glGetUniformLocation(ctx.particleProgram, "u_input_texture"), 0);
 
-  // For vertex shader
-  glUniform3f(glGetUniformLocation(ctx.particleProgram, "u_camera_right"), view[0][0], view[1][0], view[2][0]);
-  glUniform3f(glGetUniformLocation(ctx.particleProgram, "u_camera_up")   , view[0][1], view[1][1], view[2][1]);
-  glUniformMatrix4fv(glGetUniformLocation(ctx.particleProgram, "u_VP"), 1, GL_FALSE, &viewProjection[0][0]);
-
   // -- Rendering time
-
   glVertexAttribDivisor(0, 0); // particles vertices : always reuse the same 4 vertices -> 0
   glVertexAttribDivisor(1, 1); // positions : one per quad (its center) -> 1
   glVertexAttribDivisor(2, 1); // color : one per quad -> 1
